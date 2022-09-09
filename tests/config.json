@@ -1,30 +1,14 @@
 {
     "INPUT":{
-        "ROUTE":"MOCK_DATA.csv",
+        "ROUTE":"C:/Users/enzo.fernando.ipana1/Desktop/MotorDeCalidad/tests/MOCK_DATA.csv",
         "HEADER" : "TRUE",
-        "DELIMITE" : ","
+        "DELIMITER" : ","
     },
     "RULES":{
             "101":{
                 "FIELDS":"ID_CLIENTE",
                 "TOLERANCE":"0.95",
                 "IS_CRITICAL":"FALSE"
-            },
-            "102":{
-                "FIELDS":["ID_CLIENTE"],
-                "TOLERANCE":"0.95",
-                "IS_CRITICAL":"FALSE"
-            },
-            "103":{
-                "FIELDS":["ID_CLIENTE"],
-                "TOLERANCE":"0.95",
-                "IS_CRITICAL":"FALSE",
-                "INPUT":{
-                    "ROUTE":"MOCK_DATA.csv",
-                    "HEADER" : "TRUE",
-                    "DELIMITE" : ",",
-                    "KEY_FIELD" : ["ID_CLIENTE"]
-                }
             }
     }
 }

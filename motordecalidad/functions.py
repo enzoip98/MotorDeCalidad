@@ -3,53 +3,57 @@ from typing import List
 from pyspark.sql import DataFrame
 from pyspark.sql.functions import col
 from pyspark.sql.types import StringType, IntegerType
+from motordecalidad.constants import InputSection,Route,Header,Delimiter,RulesSection,Fields,OutputDataFrameColumns,NullRuleCode,DuplicatedRuleCode, KeyField
 
-##Constants
-NullRuleCode = "101"
-DuplicatedRuleCode = "102"
-InputSection = "INPUT"
-RulesSection = "RULES"
-Route = "ROUTE"
-Header = "HEADER"
-Delimiter = "DELIMITER"
-Fields = "FIELDS"
-OutputDataFrameColumns = ["CODIGO_DE_REGLA","RATIO_DE_ERROR","CANTIDAD_DE_REGISTROS_CON_ERROR"]
+def startValidation(spark,config):
+    rout,header,delimiter,rules = extractParamsFromJson(config)
+    object = spark.read.option("delimiter",delimiter).option("header",header).csv(rout)
+    registerAmount = object.count()
+    validationData = validateRules(spark,object,rules,registerAmount)
+    return validationData
 
 def extractParamsFromJson(config):
     file = open(config)
     data = json.load(file)
-    Input = data.get(InputSection)
-    Rout = Input.get(Route)
-    Header = Input.get()
-    Rules = data.get(RulesSection)
-    return[Rout,Header,Delimiter,Rules]
+    input = data.get(InputSection)
+    rout = input.get(Route)
+    header = input.get(Header)
+    delimiter = input.get(Delimiter)
+    rules = data.get(RulesSection)
+    return rout,header,delimiter,rules
 
 def validateRules(spark,object:DataFrame,rules:dict,registerAmount:IntegerType):
-    RulesData = [],
+    rulesData = []
     for code in rules:
         match code:
             case "101":
-                Data = validateNull(object,rules[code].get(Fields),registerAmount)
+                data = validateNull(object,rules[code].get(Fields),registerAmount)
             case "102":
-                Data = validateDuplicates(object,rules[code].get(Fields),registerAmount)
+                data = validateDuplicates(object,rules[code].get(Fields),registerAmount)
+            case "103":
+                referalData = rules[code].get(InputSection)
+                data = validateReferentialIntegrity(
+                    object,referalData.get(Route),rules[code].get(Fields),referalData.get(KeyField),registerAmount
+                    )
             case _:
                 pass
-        RulesData.append(Data)
-    validationData = spark.createDataFrame(data = RulesData, schema = OutputDataFrameColumns)
+        rulesData.append(data)
+    validationData = spark.createDataFrame(data = rulesData, schema = OutputDataFrameColumns)
     return validationData
 
 def validateNull(object:DataFrame,field: StringType,registersAmount: IntegerType): 
     nullCount = object.select(field).filter(col(field).isNull()).count()
-    ratio = nullCount/ registersAmount
-    return (NullRuleCode,ratio,nullCount)
+    notNullCount = registersAmount - nullCount
+    ratio = notNullCount/ registersAmount
+    return (NullRuleCode,field,ratio,nullCount)
 
 def validateDuplicates(object:DataFrame,fields:List,registersAmount: IntegerType):
     uniqueRegistersAmount = object.select(fields).dropDuplicates().count()
     nonUniqueRegistersAmount = registersAmount - uniqueRegistersAmount
-    ratio = nonUniqueRegistersAmount / registersAmount
-    return (DuplicatedRuleCode,ratio,nonUniqueRegistersAmount)
+    ratio = uniqueRegistersAmount / registersAmount
+    return (DuplicatedRuleCode,fields,ratio,nonUniqueRegistersAmount)
 
-def validateIntegridadReferencial(
+def validateReferentialIntegrity(
     testDataFrame: DataFrame,
     referenceDataFrame: DataFrame,
     key_1: List, key_2: List,
@@ -58,5 +62,5 @@ def validateIntegridadReferencial(
     innerDf = testDataFrame.select(key_1).join(referenceDataFrame, on = key_1, how = "inner")
     innerCount = innerDf.count()
     nonIntegrityRegistersAmount = registersAmount - innerCount
-    ratio = nonIntegrityRegistersAmount/ registersAmount
-    return [NullRuleCode, ratio, nonIntegrityRegistersAmount]
+    ratio = innerCount/ registersAmount
+    return (NullRuleCode,key_1,ratio, nonIntegrityRegistersAmount)
