@@ -1,6 +1,7 @@
 ##Constants
 NullRuleCode = "101"
 DuplicatedRuleCode = "102"
+IntegrityRuleCode = "103"
 InputSection = "INPUT"
 RulesSection = "RULES"
 Route = "ROUTE"

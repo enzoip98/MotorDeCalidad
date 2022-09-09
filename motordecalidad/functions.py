@@ -3,7 +3,7 @@ from typing import List
 from pyspark.sql import DataFrame
 from pyspark.sql.functions import col
 from pyspark.sql.types import StringType, IntegerType
-from motordecalidad.constants import InputSection,Route,Header,Delimiter,RulesSection,Fields,OutputDataFrameColumns,NullRuleCode,DuplicatedRuleCode, KeyField
+from motordecalidad.constants import InputSection,Route,Header,Delimiter,RulesSection,Fields,OutputDataFrameColumns,NullRuleCode,DuplicatedRuleCode, KeyField, IntegrityRuleCode
 
 def startValidation(spark,config):
     rout,header,delimiter,rules = extractParamsFromJson(config)
@@ -25,19 +25,22 @@ def extractParamsFromJson(config):
 def validateRules(spark,object:DataFrame,rules:dict,registerAmount:IntegerType):
     rulesData = []
     for code in rules:
-        match code:
-            case "101":
-                data = validateNull(object,rules[code].get(Fields),registerAmount)
-            case "102":
-                data = validateDuplicates(object,rules[code].get(Fields),registerAmount)
-            case "103":
-                referalData = rules[code].get(InputSection)
-                data = validateReferentialIntegrity(
-                    object,referalData.get(Route),rules[code].get(Fields),referalData.get(KeyField),registerAmount
-                    )
-            case _:
-                pass
-        rulesData.append(data)
+        if code == NullRuleCode:
+            data = []
+            for field in rules[code].get(Fields):
+                data = validateNull(object,field,registerAmount)
+                rulesData.append(data)
+        elif code == DuplicatedRuleCode:
+            data = validateDuplicates(object,rules[code].get(Fields),registerAmount)
+            rulesData.append(data)
+        elif code == IntegrityRuleCode:
+            referalData = rules[code].get(InputSection)
+            data = validateReferentialIntegrity(
+                object,referalData.get(Route),rules[code].get(Fields),referalData.get(KeyField),registerAmount
+                )
+            rulesData.append(data)
+        else:
+            pass
     validationData = spark.createDataFrame(data = rulesData, schema = OutputDataFrameColumns)
     return validationData
 
