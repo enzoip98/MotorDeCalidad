@@ -6,7 +6,7 @@
     },
     "RULES":{
             "101":{
-                "FIELDS":"ID_CLIENTE",
+                "FIELDS":["ID_CLIENTE","ID_TIPO_FISCAL"],
                 "TOLERANCE":"0.95",
                 "IS_CRITICAL":"FALSE"
             }
