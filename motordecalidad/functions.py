@@ -1,7 +1,7 @@
 import json
 from typing import List
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import col
+from pyspark.sql.functions import col, lit
 from pyspark.sql.types import StringType, IntegerType
 from motordecalidad.constants import One, LeftAntiType, TestedRegisterAmount,InputSection,Route,Header,Delimiter,RulesSection,Fields,OutputDataFrameColumns,NullRuleCode,DuplicatedRuleCode, KeyField, IntegrityRuleCode, Country
 
@@ -60,7 +60,7 @@ def validateRules(spark,object:DataFrame,rules:dict,registerAmount:IntegerType,c
         else:
             pass
     validationData = spark.createDataFrame(data = rulesData, schema = OutputDataFrameColumns)
-    return validationData.withColumn(Country,country).withColumn(Route,route).withColumn(TestedRegisterAmount,registerAmount)
+    return validationData.withColumn(Country,lit(country)).withColumn(Route,lit(route)).withColumn(TestedRegisterAmount,lit(registerAmount))
 
 
 #Function that valides the amount of Null registers for certain columns of the dataframe
@@ -83,7 +83,7 @@ def validateDuplicates(object:DataFrame,fields:List,registersAmount: IntegerType
     uniqueRegistersAmount = object.select(fields).dropDuplicates().count()
     nonUniqueRegistersAmount = registersAmount - uniqueRegistersAmount
     ratio = uniqueRegistersAmount / registersAmount
-    return (DuplicatedRuleCode,fields,ratio,nonUniqueRegistersAmount)
+    return (DuplicatedRuleCode,','.join(fields),ratio,nonUniqueRegistersAmount)
 
 #Function that valides the equity between certain columns of two objects
 # @spark Variable containing spark session
@@ -108,4 +108,4 @@ def validateReferentialIntegrity(
     innerDf = testDataFrame.select(testColumn).join(referenceDataFrame, on = testColumn, how = LeftAntiType)
     innerCount = innerDf.count()
     ratio = One - innerCount/registersAmount
-    return (NullRuleCode,testColumn,ratio, innerCount)
+    return (IntegrityRuleCode,','.join(testColumn),ratio, innerCount)
