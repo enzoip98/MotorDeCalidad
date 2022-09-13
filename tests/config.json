@@ -2,13 +2,30 @@
     "INPUT":{
         "ROUTE":"C:/Users/enzo.fernando.ipana1/Desktop/MotorDeCalidad/tests/MOCK_DATA.csv",
         "HEADER" : "TRUE",
-        "DELIMITER" : ","
+        "DELIMITER" : ",",
+        "COUNTRY" : "PE"
     },
     "RULES":{
             "101":{
                 "FIELDS":["ID_CLIENTE","ID_TIPO_FISCAL"],
                 "TOLERANCE":"0.95",
                 "IS_CRITICAL":"FALSE"
+            },
+            "102":{
+                "FIELDS":["ID_CLIENTE","ID_TIPO_FISCAL"],
+                "TOLERANCE":"0.95",
+                "IS_CRITICAL":"FALSE"  
+            },
+            "103":{
+                "FIELDS": ["ID_CLIENTE","ID_TIPO_FISCAL"],
+                "TOLERANCE":"0.95",
+                "IS_CRITICAL":"FALSE",
+                "INPUT": {
+                    "ROUTE" : "C:/Users/enzo.fernando.ipana1/Desktop/MotorDeCalidad/tests/MOCK_DATA.csv",
+                    "HEADER" : "TRUE",
+                    "DELIMITER" : ",",
+                    "FIELDS" : ["ID_CLIENTE","ID_TIPO_FISCAL"]
+                }
             }
     }
 }

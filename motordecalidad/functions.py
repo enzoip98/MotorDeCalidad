@@ -3,26 +3,44 @@ from typing import List
 from pyspark.sql import DataFrame
 from pyspark.sql.functions import col
 from pyspark.sql.types import StringType, IntegerType
-from motordecalidad.constants import InputSection,Route,Header,Delimiter,RulesSection,Fields,OutputDataFrameColumns,NullRuleCode,DuplicatedRuleCode, KeyField, IntegrityRuleCode
+from motordecalidad.constants import One, LeftAntiType, TestedRegisterAmount,InputSection,Route,Header,Delimiter,RulesSection,Fields,OutputDataFrameColumns,NullRuleCode,DuplicatedRuleCode, KeyField, IntegrityRuleCode, Country
 
+
+# Main function
+# @spark Variable containing spark session
+# @config Route with the json that contains de information of the execution
 def startValidation(spark,config):
-    rout,header,delimiter,rules = extractParamsFromJson(config)
-    object = spark.read.option("delimiter",delimiter).option("header",header).csv(rout)
+
+    route,header,delimiter,rules,country = extractParamsFromJson(config)
+    object = spark.read.option("delimiter",delimiter).option("header",header).csv(route)
     registerAmount = object.count()
-    validationData = validateRules(spark,object,rules,registerAmount)
+    validationData = validateRules(spark,object,rules,registerAmount,country,route)
     return validationData
 
+
+# Function that extracts the information from de JSON File
+# @config Variable that contains the JSON route
 def extractParamsFromJson(config):
+
     file = open(config)
     data = json.load(file)
     input = data.get(InputSection)
-    rout = input.get(Route)
+    route = input.get(Route)
+    country = input.get(Country)
     header = input.get(Header)
     delimiter = input.get(Delimiter)
     rules = data.get(RulesSection)
-    return rout,header,delimiter,rules
+    return route,header,delimiter,rules,country
 
-def validateRules(spark,object:DataFrame,rules:dict,registerAmount:IntegerType):
+#Function that validate rules going through the defined options
+# @spark Variable containing spark session
+# @object DataFrame that is going to be tested
+# @rules Dictionary with the rules that are going to be used and the rules parameters
+# @registerAmount Amount of registers in the DataFrame
+# @country Variable containing the Country 
+# @route Variable containing the Route of the Object
+def validateRules(spark,object:DataFrame,rules:dict,registerAmount:IntegerType,country: StringType, route: StringType):
+
     rulesData = []
     for code in rules:
         if code == NullRuleCode:
@@ -36,34 +54,58 @@ def validateRules(spark,object:DataFrame,rules:dict,registerAmount:IntegerType):
         elif code == IntegrityRuleCode:
             referalData = rules[code].get(InputSection)
             data = validateReferentialIntegrity(
-                object,referalData.get(Route),rules[code].get(Fields),referalData.get(KeyField),registerAmount
+                spark,referalData.get(Delimiter),referalData.get(Header),object,referalData.get(Route),rules[code].get(Fields),referalData.get(Fields),registerAmount
                 )
             rulesData.append(data)
         else:
             pass
     validationData = spark.createDataFrame(data = rulesData, schema = OutputDataFrameColumns)
-    return validationData
+    return validationData.withColumn(Country,country).withColumn(Route,route).withColumn(TestedRegisterAmount,registerAmount)
 
-def validateNull(object:DataFrame,field: StringType,registersAmount: IntegerType): 
+
+#Function that valides the amount of Null registers for certain columns of the dataframe
+# @object DataFrame that is going to be tested
+# @field Column that is going to be tested
+# @registersAmount Amount of registers in the DataFrame
+def validateNull(object:DataFrame,field: StringType,registersAmount: IntegerType):
+
     nullCount = object.select(field).filter(col(field).isNull()).count()
     notNullCount = registersAmount - nullCount
     ratio = notNullCount/ registersAmount
     return (NullRuleCode,field,ratio,nullCount)
 
+#Function that valides the amount of Duplicated registers for certain columns of the dataframe
+# @object DataFrame that is going to be tested
+# @field Column that is going to be tested
+# @registersAmount Amount of registers in the DataFrame
 def validateDuplicates(object:DataFrame,fields:List,registersAmount: IntegerType):
+
     uniqueRegistersAmount = object.select(fields).dropDuplicates().count()
     nonUniqueRegistersAmount = registersAmount - uniqueRegistersAmount
     ratio = uniqueRegistersAmount / registersAmount
     return (DuplicatedRuleCode,fields,ratio,nonUniqueRegistersAmount)
 
+#Function that valides the equity between certain columns of two objects
+# @spark Variable containing spark session
+# @delimiter Variable containing the delimitir of the reference object
+# @header Variable that shows if the Object has a header
+# @testDataFrame Variable Cotaining the object to be tested
+# @referenceRoute Variable Containing the referenceObject route
+# @testColumn List with the key columns in the tested object
+# @referenceColumn List with the key columns in the reference DataFrame
+# @RegistersAmount Amount of registers in the tested DataFrame
 def validateReferentialIntegrity(
+    spark,
+    delimiter,
+    header,
     testDataFrame: DataFrame,
-    referenceDataFrame: DataFrame,
-    key_1: List, key_2: List,
+    referenceRoute: StringType,
+    testColumn: List,
+    referenceColumn: List,
     registersAmount: IntegerType):
-    referenceDataFrame = referenceDataFrame.select(key_2).toDF(*key_1).dropDuplicates() # No debe tener registros duplicados
-    innerDf = testDataFrame.select(key_1).join(referenceDataFrame, on = key_1, how = "inner")
+
+    referenceDataFrame = spark.read.option("delimiter",delimiter).option("header",header).csv(referenceRoute).select(referenceColumn).toDF(*testColumn)
+    innerDf = testDataFrame.select(testColumn).join(referenceDataFrame, on = testColumn, how = LeftAntiType)
     innerCount = innerDf.count()
-    nonIntegrityRegistersAmount = registersAmount - innerCount
-    ratio = innerCount/ registersAmount
-    return (NullRuleCode,key_1,ratio, nonIntegrityRegistersAmount)
+    ratio = One - innerCount/registersAmount
+    return (NullRuleCode,testColumn,ratio, innerCount)
