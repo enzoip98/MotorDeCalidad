@@ -3,18 +3,18 @@ from typing import List
 from pyspark.sql import DataFrame
 from pyspark.sql.functions import col, lit
 from pyspark.sql.types import StringType, IntegerType
-from motordecalidad.constants import One, LeftAntiType, TestedRegisterAmount,InputSection,Route,Header,Delimiter,RulesSection,Fields,OutputDataFrameColumns,NullRuleCode,DuplicatedRuleCode, KeyField, IntegrityRuleCode, Country
+from motordecalidad.constants import DateColumn, One, LeftAntiType, TestedRegisterAmount,InputSection,Route,Header,Delimiter,RulesSection,Fields,OutputDataFrameColumns,NullRuleCode,DuplicatedRuleCode, KeyField, IntegrityRuleCode, Country
 
 
 # Main function
 # @spark Variable containing spark session
 # @config Route with the json that contains de information of the execution
-def startValidation(spark,config):
+def startValidation(spark,config, country, date):
 
-    route,header,delimiter,rules,country = extractParamsFromJson(config)
+    route,header,delimiter,rules = extractParamsFromJson(config)
     object = spark.read.option("delimiter",delimiter).option("header",header).csv(route)
     registerAmount = object.count()
-    validationData = validateRules(spark,object,rules,registerAmount,country,route)
+    validationData = validateRules(spark,object,rules,registerAmount,country,route,date)
     return validationData
 
 
@@ -26,11 +26,11 @@ def extractParamsFromJson(config):
     data = json.load(file)
     input = data.get(InputSection)
     route = input.get(Route)
-    country = input.get(Country)
+    #country = input.get(Country)
     header = input.get(Header)
     delimiter = input.get(Delimiter)
     rules = data.get(RulesSection)
-    return route,header,delimiter,rules,country
+    return route,header,delimiter,rules
 
 #Function that validate rules going through the defined options
 # @spark Variable containing spark session
@@ -39,7 +39,7 @@ def extractParamsFromJson(config):
 # @registerAmount Amount of registers in the DataFrame
 # @country Variable containing the Country 
 # @route Variable containing the Route of the Object
-def validateRules(spark,object:DataFrame,rules:dict,registerAmount:IntegerType,country: StringType, route: StringType):
+def validateRules(spark,object:DataFrame,rules:dict,registerAmount:IntegerType,country: StringType, route: StringType, date):
 
     rulesData = []
     for code in rules:
@@ -60,7 +60,7 @@ def validateRules(spark,object:DataFrame,rules:dict,registerAmount:IntegerType,c
         else:
             pass
     validationData = spark.createDataFrame(data = rulesData, schema = OutputDataFrameColumns)
-    return validationData.withColumn(Country,lit(country)).withColumn(Route,lit(route)).withColumn(TestedRegisterAmount,lit(registerAmount))
+    return validationData.withColumn(Country,lit(country)).withColumn(Route,lit(route)).withColumn(TestedRegisterAmount,lit(registerAmount)).withColumn(DateColumn, lit(date))
 
 
 #Function that valides the amount of Null registers for certain columns of the dataframe

@@ -14,3 +14,4 @@ TestedRegisterAmount = "TEST_REGISTER_AMOUNT"
 LeftAntiType = "leftanti"
 One = 1
 OutputDataFrameColumns = ["RULE_CODE","TEST_FIELD","SUCESS_RATE","FAILED_REGISTERS_AMOUNT"]
+DateColumn = "DATE"
