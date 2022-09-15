@@ -1,6 +1,6 @@
 {
     "INPUT":{
-        "ROUTE":"ruta_movimiento",
+        "ROUTE":"ruta_equipo",
         "HEADER" : "TRUE",
         "DELIMITER" : "|",
         "COUNTRY" : "PE"
@@ -19,38 +19,26 @@
             },
             
             "103.2":{
-                "FIELDS": ["ID_FACTURACION"],
+                "FIELDS": ["ID_SERVICIO"],
                 "TOLERANCE":"0.95",
                 "IS_CRITICAL":"FALSE",
                 "INPUT": {
-                    "ROUTE" : "ruta_facturacion",
+                    "ROUTE" : "ruta_servicio",
                     "HEADER" : "TRUE",
                     "DELIMITER" : "|",
-                    "FIELDS" : ["ID_FACTURACION"]
+                    "FIELDS" : ["ID_SERVICIO"]
                 }
             },
 
             "103.3":{
-                "FIELDS": ["ID_SUSCRIPCION"],
+                "FIELDS": ["ID_SUSCRIPCION","ID_SUSCRIPCION_CLIENTE"],
                 "TOLERANCE":"0.95",
                 "IS_CRITICAL":"FALSE",
                 "INPUT": {
                     "ROUTE" : "ruta_suscripcion",
                     "HEADER" : "TRUE",
                     "DELIMITER" : "|",
-                    "FIELDS" : ["ID_SUSCRIPCION"]
-                }
-            },
-
-            "103.4":{
-                "FIELDS": ["ID_SUSCRIPCION_CLIENTE"],
-                "TOLERANCE":"0.95",
-                "IS_CRITICAL":"FALSE",
-                "INPUT": {
-                    "ROUTE" : "ruta_suscripcion_cliente",
-                    "HEADER" : "TRUE",
-                    "DELIMITER" : "|",
-                    "FIELDS" : ["ID_SUSCRIPCION_CLIENTE"]
+                    "FIELDS" : ["ID_SUSCRIPCION","ID_SUSCRIPCION_CLIENTE"]
                 }
             }
         }

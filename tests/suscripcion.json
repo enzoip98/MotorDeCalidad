@@ -1,0 +1,33 @@
+{
+    "INPUT":{
+        "ROUTE":"ruta_suscripcion",
+        "HEADER" : "TRUE",
+        "DELIMITER" : "|",
+        "COUNTRY" : "PE"
+    },
+    "RULES":{
+            "103.1":{
+                "FIELDS": ["ID_CLIENTE"],
+                "TOLERANCE":"0.95",
+                "IS_CRITICAL":"FALSE",
+                "INPUT": {
+                    "ROUTE" : "ruta_cliente",
+                    "HEADER" : "TRUE",
+                    "DELIMITER" : "|",
+                    "FIELDS" : ["ID_CLIENTE"]
+                }
+            },
+            
+            "103.2":{
+                "FIELDS": ["ID_FACTURACION_CLIENTE", "ID_FACTURACION"],
+                "TOLERANCE":"0.95",
+                "IS_CRITICAL":"FALSE",
+                "INPUT": {
+                    "ROUTE" : "ruta_cuenta_facturacion",
+                    "HEADER" : "TRUE",
+                    "DELIMITER" : "|",
+                    "FIELDS" : ["ID_FACTURACION_CLIENTE", "ID_FACTURACION"]
+                }
+            }
+        }
+    }
