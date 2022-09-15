@@ -3,8 +3,7 @@ from typing import List
 from pyspark.sql import DataFrame
 from pyspark.sql.functions import col, lit
 from pyspark.sql.types import StringType, IntegerType
-from motordecalidad.constants import DateColumn, One, LeftAntiType, TestedRegisterAmount,InputSection,Route,Header,Delimiter,RulesSection,Fields,OutputDataFrameColumns,NullRuleCode,DuplicatedRuleCode, KeyField, IntegrityRuleCode, Country
-
+from motordecalidad.constants import *
 
 # Main function
 # @spark Variable containing spark session
@@ -51,7 +50,7 @@ def validateRules(spark,object:DataFrame,rules:dict,registerAmount:IntegerType,c
         elif code == DuplicatedRuleCode:
             data = validateDuplicates(object,rules[code].get(Fields),registerAmount)
             rulesData.append(data)
-        elif code == IntegrityRuleCode:
+        elif code[0:3] == IntegrityRuleCode:
             referalData = rules[code].get(InputSection)
             data = validateReferentialIntegrity(
                 spark,referalData.get(Delimiter),referalData.get(Header),object,referalData.get(Route),rules[code].get(Fields),referalData.get(Fields),registerAmount
@@ -109,3 +108,40 @@ def validateReferentialIntegrity(
     innerCount = innerDf.count()
     ratio = One - innerCount/registersAmount
     return (IntegrityRuleCode,','.join(testColumn),ratio, innerCount)
+
+#Function / method that valides strings contained in a column
+# @object Variable containing dataframe
+# @columnName Variable containing the column name of the df
+# @wordList Variable type list containing the exact words that the column needs to have
+# @registersAmount Count of total registers in column
+def checkContain(columnName, wordList: list, object, registersAmount):
+    countString = object.filter((object.columnName).isin(wordList)).count()
+    ratio = countString/registersAmount
+    return(CheckStringRuleCode, columnName, ratio, countString)
+
+#Function than validates type bool [0,1] contained in column
+# @object Variable containing dataframe
+# @columnName Variable containing the column name of the df
+# @registersAmount Count of total registers in column
+def checkBool(columnName, object, registersAmount):
+    countBool = object.filter((object.columnName).isin([0,1])).count()
+    ratio = countBool/registersAmount
+    return(CheckBoolRuleCode, columnName, ratio, countBool)
+
+#Function that validates the amount of strings that contain "".
+# @object Variable containing dataframe
+# @columnName Variable containing the column name of the df
+# @registersAmount Count of total registers in column
+def checkComillasDobles(columnName, object, registersAmount):
+    countComillas = object.filter(col(columnName).rlike("(?i)^*""$")).count()
+    ratio = countComillas/registersAmount
+    return(CheckComillasDoblesRuleCode, columnName, ratio, countComillas)
+
+#Function that validates the amount of strings that contain "".
+# @object Variable containing dataframe
+# @columnName Variable containing the column name of the df
+# @registersAmount Count of total registers in column
+def checkTypeFloat(columnName, object, registersAmount):
+    countFloat = object.filter(col(columnName).rlike("(?i)^*.00$")).count()
+    ratio = countFloat/registersAmount
+    return(CheckComillasDoblesRuleCode, columnName, ratio, countFloat)

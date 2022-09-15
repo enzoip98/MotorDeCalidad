@@ -19,38 +19,38 @@
             },
             
             "103.2":{
-                "FIELDS": ["ID_FACTURACION"],
+                "FIELDS": ["ID_FACTURACION", "ID_FACTURACION_CLIENTE"],
                 "TOLERANCE":"0.95",
                 "IS_CRITICAL":"FALSE",
                 "INPUT": {
-                    "ROUTE" : "ruta_facturacion",
+                    "ROUTE" : "ruta_cuenta_facturacion",
                     "HEADER" : "TRUE",
                     "DELIMITER" : "|",
-                    "FIELDS" : ["ID_FACTURACION"]
+                    "FIELDS" : ["ID_FACTURACION", "ID_FACTURACION_CLIENTE"]
                 }
             },
 
             "103.3":{
-                "FIELDS": ["ID_SUSCRIPCION"],
+                "FIELDS": ["ID_SERVICIO","ID_SERVICIO_CLIENTE_PADRE","ID_SERVICIO_PADRE"],
+                "TOLERANCE":"0.95",
+                "IS_CRITICAL":"FALSE",
+                "INPUT": {
+                    "ROUTE" : "ruta_servicio",
+                    "HEADER" : "TRUE",
+                    "DELIMITER" : "|",
+                    "FIELDS" : ["ID_SERVICIO","ID_SERVICIO_CLIENTE_PADRE","ID_SERVICIO_PADRE"]
+                }
+            },
+
+            "103.4":{
+                "FIELDS": ["ID_SUSCRIPCION","ID_SUSCRIPCION_CLIENTE","SUSCRIPCION_ACTIVA"],
                 "TOLERANCE":"0.95",
                 "IS_CRITICAL":"FALSE",
                 "INPUT": {
                     "ROUTE" : "ruta_suscripcion",
                     "HEADER" : "TRUE",
                     "DELIMITER" : "|",
-                    "FIELDS" : ["ID_SUSCRIPCION"]
-                }
-            },
-
-            "103.4":{
-                "FIELDS": ["ID_SUSCRIPCION_CLIENTE"],
-                "TOLERANCE":"0.95",
-                "IS_CRITICAL":"FALSE",
-                "INPUT": {
-                    "ROUTE" : "ruta_suscripcion_cliente",
-                    "HEADER" : "TRUE",
-                    "DELIMITER" : "|",
-                    "FIELDS" : ["ID_SUSCRIPCION_CLIENTE"]
+                    "FIELDS" : ["ID_SUSCRIPCION","ID_SUSCRIPCION_CLIENTE","SUSCRIPCION_ACTIVA"]
                 }
             }
         }

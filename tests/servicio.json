@@ -1,0 +1,21 @@
+{
+    "INPUT":{
+        "ROUTE":"ruta_servicio",
+        "HEADER" : "TRUE",
+        "DELIMITER" : "|",
+        "COUNTRY" : "PE"
+    },
+    "RULES":{
+            "103":{
+                "FIELDS": ["ID_CLIENTE"],
+                "TOLERANCE":"0.95",
+                "IS_CRITICAL":"FALSE",
+                "INPUT": {
+                    "ROUTE" : "ruta_cliente",
+                    "HEADER" : "TRUE",
+                    "DELIMITER" : "|",
+                    "FIELDS" : ["ID_CLIENTE"]
+                }
+            }
+    }
+}
