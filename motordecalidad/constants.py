@@ -2,6 +2,8 @@
 NullRuleCode = "101"
 DuplicatedRuleCode = "102"
 IntegrityRuleCode = "103"
+CheckStringRuleCode = "104"
+CheckBoolRuleCode = "105"
 InputSection = "INPUT"
 RulesSection = "RULES"
 Route = "ROUTE"
