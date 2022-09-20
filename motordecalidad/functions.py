@@ -14,7 +14,7 @@ def startValidation(spark,config, country, date):
     object = spark.read.option("delimiter",delimiter).option("header",header).csv(route)
     registerAmount = object.count()
     validationData = validateRules(spark,object,rules,registerAmount,country,route,date)
-    return validationData
+    return (date, country, route, validationData.select("RULE_CODE"), validationData.select("TEST_FIELD"), validationData.select("SUCESS_RATE"), validationData.select("FAILED_REGISTERS_AMOUNT"), registerAmount,  validationData.select("DATE"))
 
 
 # Function that extracts the information from de JSON File
