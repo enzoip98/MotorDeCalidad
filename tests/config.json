@@ -3,7 +3,8 @@
         "ROUTE":"ruta_movimiento",
         "HEADER" : "TRUE",
         "DELIMITER" : "|",
-        "COUNTRY" : "PE"
+        "COUNTRY" : "PE",
+        "PROJECT_NAME" : "PROJECT_NAME"
     },
     "RULES":{
             "103.1":{

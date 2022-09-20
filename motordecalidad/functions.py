@@ -5,16 +5,18 @@ from pyspark.sql.functions import col, lit
 from pyspark.sql.types import StringType, IntegerType
 from motordecalidad.constants import *
 
+from datetime import date
+
 # Main function
 # @spark Variable containing spark session
 # @config Route with the json that contains de information of the execution
 def startValidation(spark,config, country, date):
-
+    runDate = date.today(),
     route,header,delimiter,rules = extractParamsFromJson(config)
     object = spark.read.option("delimiter",delimiter).option("header",header).csv(route)
     registerAmount = object.count()
     validationData = validateRules(spark,object,rules,registerAmount,country,route,date)
-    return (date, country, route, validationData.select("RULE_CODE"), validationData.select("TEST_FIELD"), validationData.select("SUCESS_RATE"), validationData.select("FAILED_REGISTERS_AMOUNT"), registerAmount,  validationData.select("DATE"))
+    return (runDate, projectName, country,  validationData.select("DATE"), route, validationData.select("TEST_FIELD"), validationData.select("RULE_TYPE"), ruleCode, registerAmount, validationData.select("FAILED_REGISTERS_AMOUNT"), validationData.select("SUCESS_RATE"))
 
 
 # Function that extracts the information from de JSON File
