@@ -20,3 +20,4 @@ OutputDataFrameColumns = ["RULE_TYPE","TEST_FIELD","SUCESS_RATE","FAILED_REGISTE
 DateColumn = "DATE"
 
 ruleCode = "AA001"
+projectName = "name"
