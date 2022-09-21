@@ -1,57 +1,16 @@
 {
     "INPUT":{
-        "ROUTE":"ruta_movimiento",
+        "ZONE" :"landing",
+        "COUNTRY_ID" : "PE",
+        "ENTITY" : "CUENTA_FACTURACION",
         "HEADER" : "TRUE",
-        "DELIMITER" : "|",
-        "COUNTRY" : "PE"
+        "DELIMITER" : "|"
     },
     "RULES":{
-            "103.1":{
+            "101":{
                 "FIELDS": ["ID_CLIENTE"],
                 "TOLERANCE":"0.95",
-                "IS_CRITICAL":"FALSE",
-                "INPUT": {
-                    "ROUTE" : "ruta_cliente",
-                    "HEADER" : "TRUE",
-                    "DELIMITER" : "|",
-                    "FIELDS" : ["ID_CLIENTE"]
-                }
-            },
-            
-            "103.2":{
-                "FIELDS": ["ID_FACTURACION"],
-                "TOLERANCE":"0.95",
-                "IS_CRITICAL":"FALSE",
-                "INPUT": {
-                    "ROUTE" : "ruta_facturacion",
-                    "HEADER" : "TRUE",
-                    "DELIMITER" : "|",
-                    "FIELDS" : ["ID_FACTURACION"]
-                }
-            },
-
-            "103.3":{
-                "FIELDS": ["ID_SUSCRIPCION"],
-                "TOLERANCE":"0.95",
-                "IS_CRITICAL":"FALSE",
-                "INPUT": {
-                    "ROUTE" : "ruta_suscripcion",
-                    "HEADER" : "TRUE",
-                    "DELIMITER" : "|",
-                    "FIELDS" : ["ID_SUSCRIPCION"]
-                }
-            },
-
-            "103.4":{
-                "FIELDS": ["ID_SUSCRIPCION_CLIENTE"],
-                "TOLERANCE":"0.95",
-                "IS_CRITICAL":"FALSE",
-                "INPUT": {
-                    "ROUTE" : "ruta_suscripcion_cliente",
-                    "HEADER" : "TRUE",
-                    "DELIMITER" : "|",
-                    "FIELDS" : ["ID_SUSCRIPCION_CLIENTE"]
-                }
+                "IS_CRITICAL":"FALSE"
             }
         }
     }
