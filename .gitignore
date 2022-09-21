@@ -5,3 +5,4 @@ build/lib/motordecalidad/functions.py
 MotorDeCalidad.egg-info/PKG-INFO
 MotorDeCalidad.egg-info/SOURCES.txt
 MotorDeCalidad.egg-info/top_level.txt
+motordecalidad/keys.py
