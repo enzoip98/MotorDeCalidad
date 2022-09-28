@@ -1,10 +1,10 @@
 {
     "INPUT":{
-        "ZONE" :"landing",
-        "COUNTRY_ID" : "PE",
-        "ENTITY" : "CUENTA_FACTURACION",
-        "HEADER" : "TRUE",
-        "DELIMITER" : "|"
+        "HEADER" : "True",
+        "DELIMITER" : "|",
+        "PATH" : "abfss://landing@adlseuedltb2b001.dfs.core.windows.net/b2b/col/crm_cliente/CLIENTE_202208.csv.gz",
+        "ACCOUNT":"fs.azure.account.key.adlseuedltb2b001.dfs.core.windows.net",
+        "KEY":"JBBJSKUjq3q/EhpuIsBFGxCpI5M5/wvs4romw6eZBrH772HucQ2y9UKlfXIWpfYikjMn0wjE+Iki+ASt5AwC1Q=="
     },
     "RULES":{
             "101":{

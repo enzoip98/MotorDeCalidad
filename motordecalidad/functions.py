@@ -1,13 +1,13 @@
+from email import header
 import json
 from typing import List
 from pyspark.sql import DataFrame
 from pyspark.sql.functions import col, lit
 from pyspark.sql.types import StringType, IntegerType
 from motordecalidad.constants import *
-from motordecalidad.keys import *
 import datetime
 
-print("Motor de Calidad Version Beta 1.0")
+print("Motor de Calidad Version Beta 1.1")
 
 # Main function
 # @spark Variable containing spark session
@@ -19,10 +19,10 @@ def startValidation(inputspark,config,inputcountry,inputdate):
     spark = inputspark
     country = inputcountry
     date = inputdate
-    object,rules,project,entity, input = extractParamsFromJson(config)
+    object,rules,entity,project,output = extractParamsFromJson(config)
     registerAmount = object.count()
     validationData = validateRules(object,rules,registerAmount,entity,project)
-    #writeDf(validationData,input,zone)
+    #writeDf(validationData,output)
     return validationData
 
 
@@ -32,38 +32,26 @@ def extractParamsFromJson(config):
     global zone
     file = open(config)
     data = json.load(file)
-    input = data.get(JsonParts.InputSection)
-    entity:StringType = input.get(JsonParts.EntitySection)
-    zone = input.get(JsonParts.ZoneSection)
+    input = data.get(JsonParts.Input)
+    output = data.get(JsonParts.Output)
+    entity:StringType = input.get(JsonParts.Entity)
+    project:StringType = input.get(JsonParts.Project)
     entityDf = readDf(input)
-    project = input.get(JsonParts.ProjectSection)
-    rules = data.get(JsonParts.RulesSection)
-    return entityDf,rules,project, entity, input
+    rules = data.get(JsonParts.Rules)
+    return entityDf,rules,entity,project,output
 
 # Function that reads the CSV file as a Dataframe
 # @spark Variable containing spark session
 # @config Route with the json that contains de information of the execution
 def readDf(input):
-    header = input.get(JsonParts.HeaderSection)
-    delimiter = input.get(JsonParts.DelimiterSection)
-    entity:StringType = input.get(JsonParts.EntitySection)
-    if zone == Zone.Landing :
-        spark.conf.set(AzureKeys.Landing.Account,AzureKeys.Landing.Key)
-        route = f"abfss://landing@adlseuedltb2b001.dfs.core.windows.net/b2b/{country.lower()}/crm_{entity.lower()}/{entity.upper()}_{date}.csv.gz"
-    elif zone == Zone.Solution :
-        spark.conf.set(AzureKeys.Solution.Account,AzureKeys.Solution.Key)
-        route = f"abfss://data@adlseuedltb2b002.dfs.core.windows.net/{input.get(JsonParts.DomainSection)}/{input.get(JsonParts.SubDomainSection)}/{entity}/b2b/{country.lower()}/{date}/"
-    return spark.read.option("delimiter",delimiter).option("header",header).csv(route)
+    header = input.get(JsonParts.Header)
+    spark.conf.set(input.get(JsonParts.Account),input.get(JsonParts.Key))
+    return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(input.get(JsonParts.Path))
 
-def writeDf(object:DataFrame,input,resultZone):
-    header = input.get(JsonParts.HeaderSection)
-    delimiter = input.get(JsonParts.DelimiterSection)
-    if resultZone == Zone.DQ :
-        spark.conf.set(AzureKeys.Solution.Account,AzureKeys.Solution.Key)
-        object.write.partitionBy(ZoneColumn,ProjectColumn,CountryColumn,EntityColumn,DateColumn).mode("overwrite").option("delimiter",delimiter).option("header",header).csv("abfss://dataquality@adlseuedltb2b002.dfs.core.windows.net/parque/")
-    elif resultZone == Zone.ObservedData : 
-        spark.conf.set(AzureKeys.ObservedData.Account,AzureKeys.ObservedData.Key)
-        object.write.partitionBy(ZoneColumn,ProjectColumn,CountryColumn,EntityColumn,DateColumn).mode("overwrite").option("delimiter",delimiter).option("header",header).csv("abfss://data-observada@adlseuedltb2b001.blob.core.windows.net/")
+def writeDf(object:DataFrame,output):
+    header = output.get(JsonParts.Header)
+    spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
+    return object.coalesce(One).write.mode("overwrite").option("delimiter",output.get(JsonParts.Delimiter)).option("header",header).format("com.databricks.spark.csv").save(output.get(JsonParts.Path))
 
 #Function that validate rules going through the defined options
 # @spark Variable containing spark session
@@ -72,27 +60,27 @@ def writeDf(object:DataFrame,input,resultZone):
 # @registerAmount Amount of registers in the DataFrame
 # @country Variable containing the Country 
 # @route Variable containing the Route of the Object
-def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity: StringType, project):
+def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity: StringType, project:StringType):
 
     rulesData = []
     for code in rules:
         if code == RuleCodes.NullRuleCode:
             data = []
-            for field in rules[code].get(JsonParts.FieldsSection):
+            for field in rules[code].get(JsonParts.Fields):
                 data = validateNull(object,field,registerAmount)
                 rulesData.append(data)
         elif code == RuleCodes.DuplicatedRuleCode:
-            data = validateDuplicates(object,rules[code].get(JsonParts.FieldsSection),registerAmount)
+            data = validateDuplicates(object,rules[code].get(JsonParts.Fields),registerAmount)
             rulesData.append(data)
         elif code[0:3] == RuleCodes.IntegrityRuleCode:
-            referalData = rules[code].get(JsonParts.InputSection)
+            referalData = rules[code].get(JsonParts.Input)
             data = validateReferentialIntegrity(
-                object,referalData,rules[code].get(JsonParts.FieldsSection),referalData.get(JsonParts.FieldsSection),registerAmount
+                object,referalData,rules[code].get(JsonParts.Fields),referalData.get(JsonParts.Fields),registerAmount
                 )
             rulesData.append(data)
         else:
             pass
-    validationData = spark.createDataFrame(data = rulesData, schema = OutputDataFrameColumns).withColumn(CountryColumn,lit(country)).withColumn(EntityColumn,lit(entity)).withColumn(TestedRegisterAmountColumn,lit(registerAmount)).withColumn(DateColumn, lit(date)).withColumn(ProjectColumn,lit(project)).withColumn(AuditDateColumn,lit(datetime.datetime.now())).withColumn(ZoneColumn,lit(zone))
+    validationData:DataFrame = spark.createDataFrame(data = rulesData, schema = OutputDataFrameColumns).withColumn(CountryColumn,lit(country)).withColumn(EntityColumn,lit(entity)).withColumn(TestedRegisterAmountColumn,lit(registerAmount)).withColumn(DateColumn, lit(date)).withColumn(ProjectColumn,lit(project)).withColumn(AuditDateColumn,lit(datetime.datetime.now()))
     return validationData.select(
         AuditDateColumn,
         ProjectColumn,
@@ -148,7 +136,7 @@ def validateReferentialIntegrity(
     innerDf = testDataFrame.select(testColumn).join(referenceDataFrame.select(referenceColumn).toDF(*testColumn), on = testColumn, how = LeftAntiType)
     innerCount = innerDf.count()
     ratio = One - innerCount/registersAmount
-    #writeDf(innerDf.withColumn(ZoneColumn,lit(zone)).withColumn(ProjectColumn,referalData.get(JsonParts.ProjectSection)).withColumn(CountryColumn,lit(country)).withColumn(EntityColumn,referalData.get(JsonParts.EntitySection)).withColumn(DateColumn,date),referalData,Zone.ObservedData)
+    #writeDf(innerDf)
     return (RuleCodes.IntegrityRuleCode,','.join(testColumn),ratio, innerCount)
 
 #Function / method that valides strings contained in a column
