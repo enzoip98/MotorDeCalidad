@@ -9,6 +9,8 @@ import datetime
 
 print("Motor de Calidad Version Beta 1.1")
 
+from datetime import date
+
 # Main function
 # @spark Variable containing spark session
 # @config Route with the json that contains de information of the execution
