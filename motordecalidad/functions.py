@@ -21,9 +21,9 @@ def startValidation(inputspark,config,inputcountry,inputdate):
     date = inputdate
     object,rules,entity,project,output = extractParamsFromJson(config)
     registerAmount = object.count()
-    validationData = validateRules(object,rules,registerAmount,entity,project)
+    validationData, errorDf = validateRules(object,rules,registerAmount,entity,project)
     #writeDf(validationData,output)
-    return validationData
+    return validationData, errorDf
 
 
 # Function that extracts the information from de JSON File
@@ -61,6 +61,7 @@ def writeDf(object:DataFrame,output):
 # @country Variable containing the Country 
 # @route Variable containing the Route of the Object
 def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity: StringType, project:StringType):
+    runTime = datetime.datetime.now()
 
     rulesData = []
     for code in rules:
@@ -74,13 +75,21 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
             rulesData.append(data)
         elif code[0:3] == RuleCodes.IntegrityRuleCode:
             referalData = rules[code].get(JsonParts.Input)
-            data = validateReferentialIntegrity(
+            data, errorDf:DataFrame = validateReferentialIntegrity(
                 object,referalData,rules[code].get(JsonParts.Fields),referalData.get(JsonParts.Fields),registerAmount
                 )
-            rulesData.append(data)
+            rulesData.append(data) 
+            #writeDF(errorDf.withColumn("fecha_ejecucion", lit(runTime)))
         else:
             pass
-    validationData:DataFrame = spark.createDataFrame(data = rulesData, schema = OutputDataFrameColumns).withColumn(CountryColumn,lit(country)).withColumn(EntityColumn,lit(entity)).withColumn(TestedRegisterAmountColumn,lit(registerAmount)).withColumn(DateColumn, lit(date)).withColumn(ProjectColumn,lit(project)).withColumn(AuditDateColumn,lit(datetime.datetime.now()))
+    validationData:DataFrame = spark.createDataFrame(data = rulesData, schema = OutputDataFrameColumns)\
+                                    .withColumn(CountryColumn,lit(country))\
+                                    .withColumn(EntityColumn,lit(entity))\
+                                    .withColumn(TestedRegisterAmountColumn,lit(registerAmount))\
+                                    .withColumn(DateColumn, lit(date))\
+                                    .withColumn(ProjectColumn,lit(project))\
+                                    .withColumn(AuditDateColumn,lit(runTime))
+    #errorDf:DataFrame
     return validationData.select(
         AuditDateColumn,
         ProjectColumn,
@@ -112,10 +121,15 @@ def validateNull(object:DataFrame,field: StringType,registersAmount: IntegerType
 # @registersAmount Amount of registers in the DataFrame
 def validateDuplicates(object:DataFrame,fields:List,registersAmount: IntegerType):
 
+    duplicates = object.groupBy(fields).count()
+    duplicates = duplicates.filter(duplicates["count"] > 1)
+
+    errorDf = object.join(duplicates.select(fields), fields, 'inner')
+
     uniqueRegistersAmount = object.select(fields).dropDuplicates().count()
     nonUniqueRegistersAmount = registersAmount - uniqueRegistersAmount
     ratio = uniqueRegistersAmount / registersAmount
-    return (RuleCodes.DuplicatedRuleCode,','.join(fields),ratio,nonUniqueRegistersAmount)
+    return (RuleCodes.DuplicatedRuleCode,','.join(fields),ratio,nonUniqueRegistersAmount), errorDf
 
 #Function that valides the equity between certain columns of two objects
 # @spark Variable containing spark session
@@ -132,12 +146,15 @@ def validateReferentialIntegrity(
     testColumn: List,
     referenceColumn: List,
     registersAmount: IntegerType):
+
     referenceDataFrame = readDf(referalData)
-    innerDf = testDataFrame.select(testColumn).join(referenceDataFrame.select(referenceColumn).toDF(*testColumn), on = testColumn, how = LeftAntiType)
-    innerCount = innerDf.count()
-    ratio = One - innerCount/registersAmount
+    errorDf = testDataFrame.select(testColumn).join(referenceDataFrame.select(referenceColumn).toDF(*testColumn), on = testColumn, how = LeftAntiType)
+    #innerDf = testDataFrame.join(referenceDataFrame.select(referenceColumn).toDF(*testColumn), on = testColumn, how = LeftAntiType)
+    #errorDf = errorDf.withColumn("error", lit("integridad referencial - " + str(textColumn) + " - " + str(referenceColumn) + " - " + str(referalData)))
+    errorCount = errorDf.count()
+    ratio = One - errorCount/registersAmount
     #writeDf(innerDf)
-    return (RuleCodes.IntegrityRuleCode,','.join(testColumn),ratio, innerCount)
+    return (RuleCodes.IntegrityRuleCode,','.join(testColumn),ratio, errorCount), errorDf
 
 #Function / method that valides strings contained in a column
 # @object Variable containing dataframe
