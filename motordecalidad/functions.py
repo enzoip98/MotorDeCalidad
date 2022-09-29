@@ -1,5 +1,7 @@
+from distutils.log import error
 import json
 from typing import List
+#from dbutils import DBUtils
 from pyspark.sql import DataFrame
 from pyspark.sql.functions import col, lit
 from pyspark.sql.types import StringType, IntegerType
@@ -20,9 +22,10 @@ def startValidation(inputspark,config,inputcountry,inputdate):
     spark = inputspark
     country = inputcountry
     date = inputdate
-    object,rules,entity,project = extractParamsFromJson(config)
+    object,rules,entity,project,output = extractParamsFromJson(config)
     registerAmount = object.count()
     validationData = validateRules(object,rules,registerAmount,entity,project)
+    writeDf(validationData, output)
     return validationData
 
 
@@ -40,7 +43,7 @@ def extractParamsFromJson(config):
     entityDf = readDf(input)
     rules = data.get(JsonParts.Rules)
     print("Extraccion de JSON completada")
-    return entityDf,rules,entity,project
+    return entityDf,rules,entity,project, output
 
 # Function that reads the CSV file as a Dataframe
 # @spark Variable containing spark session
@@ -53,7 +56,19 @@ def readDf(input):
 def writeDf(object:DataFrame,output):
     header = output.get(JsonParts.Header)
     spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
-    return object.coalesce(One).write.mode("overwrite").option("delimiter",output.get(JsonParts.Delimiter)).option("header",header).format("com.databricks.spark.csv").save(output.get(JsonParts.Path))
+    print("Llego aca!")
+    #object.coalesce(1).write.mode("append").option("delimiter","|").option("header",True).format("com.databricks.spark.csv").save("wasbs://rules@adlseu2edthdev001.blob.core.windows.net/dq/producto/catalogo_terminales/equipo/b2b/col/2022/08/")
+    object.coalesce(One).write.mode("overwrite").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path)))
+    return print("Se logro!")
+
+def writeDfappend(object:DataFrame,output):
+    header = output.get(JsonParts.Header)
+    spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
+    print("Llego aca!")
+    #dbutils.fs.rm("abfss"+str(output.get(JsonParts.Path)), True)
+    #object.coalesce(1).write.mode("append").option("delimiter","|").option("header",True).format("com.databricks.spark.csv").save("wasbs://rules@adlseu2edthdev001.blob.core.windows.net/dq/producto/catalogo_terminales/equipo/b2b/col/2022/08/")
+    object.coalesce(One).write.mode("append").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path)))
+    return print("Se logro!")
 
 #Function that validate rules going through the defined options
 # @spark Variable containing spark session
@@ -69,20 +84,49 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
     for code in rules:
         if code == RuleCodes.NullRuleCode:
             data = []
-            for field in rules[code].get(JsonParts.Fields):
-                data = validateNull(object,field,registerAmount)
+            columns = rules[code].get(JsonParts.Fields)
+            i = 0
+
+            for field in columns:
+                print("Inicializando reglas de Nulos")
+                data, errorDf = validateNull(object,field,registerAmount)
+                errorDesc = "Nulos - " + str(columns)
+                if i == 0:
+                    errorTotal = errorDf.withColumn("error", lit(errorDesc))\
+                                        .withColumn("run_time", lit(runTime))
+                    i += 1
+                else:
+                    errorDf = errorDf.withColumn("error", lit(errorDesc))\
+                                        .withColumn("run_time", lit(runTime))
+                    errorTotal = errorTotal.union(errorDf)
+
                 rulesData.append(data)
+                print("Regla de Nulos Finalizada")
+            writeDf(errorTotal, rules[code].get(JsonParts.Output))
         elif code == RuleCodes.DuplicatedRuleCode:
             print("Inicializando reglas de Duplicidad")
-            data = validateDuplicates(object,rules[code].get(JsonParts.Fields),registerAmount)
+            testColumn = rules[code].get(JsonParts.Fields)
+            data, errorDf = validateDuplicates(object,testColumn,registerAmount)
+            errorDesc = "Duplicidad - " + str(testColumn)
+            errorDF = errorDf.withColumn("error", lit(errorDesc))\
+                             .withColumn("run_time", lit(runTime))
             rulesData.append(data)
             print("Regla de Duplicidad Finalizada")
+            writeDf(errorDF, rules[code].get(JsonParts.Output))
         elif code[0:3] == RuleCodes.IntegrityRuleCode:
+            print("Inicializando reglas de Integridad referencial")
             referalData = rules[code].get(JsonParts.Input)
-            data:DataFrame = validateReferentialIntegrity(
-                object,referalData,rules[code].get(JsonParts.Fields),referalData.get(JsonParts.Fields),registerAmount
-                )
+            testColumn = rules[code].get(JsonParts.Fields)
+            referenceColumn = referalData.get(JsonParts.Fields)
+            data, errorDf = validateReferentialIntegrity(
+                object,referalData, testColumn, referenceColumn,registerAmount)
+            errorDesc = "Integridad referencial - " + str(testColumn) + " - "\
+                         + str(referenceColumn) + " - " + str(referalData)
+            errorDF = errorDf.withColumn("error", lit(errorDesc))\
+                             .withColumn("run_time", lit(runTime))
             rulesData.append(data) 
+            print("Regla de Integridad referencial finalizada")
+            writeDf(errorDF, rules[code].get(JsonParts.Output))
         else:
             pass
     validationData:DataFrame = spark.createDataFrame(data = rulesData, schema = OutputDataFrameColumns)\
@@ -112,10 +156,13 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
 # @registersAmount Amount of registers in the DataFrame
 def validateNull(object:DataFrame,field: StringType,registersAmount: IntegerType):
 
+    errorDf = object.filter(col(field).isNull())
     nullCount = object.select(field).filter(col(field).isNull()).count()
     notNullCount = registersAmount - nullCount
     ratio = notNullCount/ registersAmount
-    return (RuleCodes.NullRuleCode,field,ratio,nullCount)
+    print("Errores de nulos")
+    #errorDf.show()
+    return (RuleCodes.NullRuleCode,field,ratio,nullCount), errorDf
 
 #Function that valides the amount of Duplicated registers for certain columns of the dataframe
 # @object DataFrame that is going to be tested
@@ -128,8 +175,9 @@ def validateDuplicates(object:DataFrame,fields:List,registersAmount: IntegerType
     nonUniqueRegistersAmount = errorDf.count()
     uniqueRegistersAmount = registersAmount - nonUniqueRegistersAmount
     ratio = uniqueRegistersAmount / registersAmount
-    errorDf.show()
-    return (RuleCodes.DuplicatedRuleCode,','.join(fields),ratio,nonUniqueRegistersAmount)
+    print("Errores de duplicados")
+    #errorDf.show()
+    return (RuleCodes.DuplicatedRuleCode,','.join(fields),ratio,nonUniqueRegistersAmount), errorDf
 
 #Function that valides the equity between certain columns of two objects
 # @spark Variable containing spark session
@@ -151,7 +199,9 @@ def validateReferentialIntegrity(
     errorDf = testDataFrame.select(testColumn).join(referenceDataFrame.select(referenceColumn).toDF(*testColumn), on = testColumn, how = LeftAntiType)
     errorCount = errorDf.count()
     ratio = One - errorCount/registersAmount
-    return (RuleCodes.IntegrityRuleCode,','.join(testColumn),ratio, errorCount)
+    print("Errores de integridad referencial")
+    #errorDf.show()
+    return (RuleCodes.IntegrityRuleCode,','.join(testColumn),ratio, errorCount), errorDf
 
 #Function / method that valides strings contained in a column
 # @object Variable containing dataframe
