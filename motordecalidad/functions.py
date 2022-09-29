@@ -1,4 +1,3 @@
-from email import header
 import json
 from typing import List
 from pyspark.sql import DataFrame
@@ -21,16 +20,16 @@ def startValidation(inputspark,config,inputcountry,inputdate):
     spark = inputspark
     country = inputcountry
     date = inputdate
-    object,rules,entity,project,output = extractParamsFromJson(config)
+    object,rules,entity,project = extractParamsFromJson(config)
     registerAmount = object.count()
-    validationData, errorDf = validateRules(object,rules,registerAmount,entity,project)
-    #writeDf(validationData,output)
-    return validationData, errorDf
+    validationData = validateRules(object,rules,registerAmount,entity,project)
+    return validationData
 
 
 # Function that extracts the information from de JSON File
 # @config Variable that contains the JSON route
 def extractParamsFromJson(config):
+
     global zone
     file = open(config)
     data = json.load(file)
@@ -40,7 +39,8 @@ def extractParamsFromJson(config):
     project:StringType = input.get(JsonParts.Project)
     entityDf = readDf(input)
     rules = data.get(JsonParts.Rules)
-    return entityDf,rules,entity,project,output
+    print("Extraccion de JSON completada")
+    return entityDf,rules,entity,project
 
 # Function that reads the CSV file as a Dataframe
 # @spark Variable containing spark session
@@ -73,15 +73,16 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
                 data = validateNull(object,field,registerAmount)
                 rulesData.append(data)
         elif code == RuleCodes.DuplicatedRuleCode:
+            print("Inicializando reglas de Duplicidad")
             data = validateDuplicates(object,rules[code].get(JsonParts.Fields),registerAmount)
             rulesData.append(data)
+            print("Regla de Duplicidad Finalizada")
         elif code[0:3] == RuleCodes.IntegrityRuleCode:
             referalData = rules[code].get(JsonParts.Input)
-            data, errorDf:DataFrame = validateReferentialIntegrity(
+            data:DataFrame = validateReferentialIntegrity(
                 object,referalData,rules[code].get(JsonParts.Fields),referalData.get(JsonParts.Fields),registerAmount
                 )
             rulesData.append(data) 
-            #writeDF(errorDf.withColumn("fecha_ejecucion", lit(runTime)))
         else:
             pass
     validationData:DataFrame = spark.createDataFrame(data = rulesData, schema = OutputDataFrameColumns)\
@@ -91,7 +92,6 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
                                     .withColumn(DateColumn, lit(date))\
                                     .withColumn(ProjectColumn,lit(project))\
                                     .withColumn(AuditDateColumn,lit(runTime))
-    #errorDf:DataFrame
     return validationData.select(
         AuditDateColumn,
         ProjectColumn,
@@ -123,15 +123,13 @@ def validateNull(object:DataFrame,field: StringType,registersAmount: IntegerType
 # @registersAmount Amount of registers in the DataFrame
 def validateDuplicates(object:DataFrame,fields:List,registersAmount: IntegerType):
 
-    duplicates = object.groupBy(fields).count()
-    duplicates = duplicates.filter(duplicates["count"] > 1)
-
-    errorDf = object.join(duplicates.select(fields), fields, 'inner')
-
-    uniqueRegistersAmount = object.select(fields).dropDuplicates().count()
-    nonUniqueRegistersAmount = registersAmount - uniqueRegistersAmount
+    duplicates = object.groupBy(fields).count().filter(col("count") != 1)
+    errorDf = object.join(duplicates.select(fields), fields, 'inner').withColumn("observation",lit("Columna duplicada"))
+    nonUniqueRegistersAmount = errorDf.count()
+    uniqueRegistersAmount = registersAmount - nonUniqueRegistersAmount
     ratio = uniqueRegistersAmount / registersAmount
-    return (RuleCodes.DuplicatedRuleCode,','.join(fields),ratio,nonUniqueRegistersAmount), errorDf
+    errorDf.show()
+    return (RuleCodes.DuplicatedRuleCode,','.join(fields),ratio,nonUniqueRegistersAmount)
 
 #Function that valides the equity between certain columns of two objects
 # @spark Variable containing spark session
@@ -151,12 +149,9 @@ def validateReferentialIntegrity(
 
     referenceDataFrame = readDf(referalData)
     errorDf = testDataFrame.select(testColumn).join(referenceDataFrame.select(referenceColumn).toDF(*testColumn), on = testColumn, how = LeftAntiType)
-    #innerDf = testDataFrame.join(referenceDataFrame.select(referenceColumn).toDF(*testColumn), on = testColumn, how = LeftAntiType)
-    #errorDf = errorDf.withColumn("error", lit("integridad referencial - " + str(textColumn) + " - " + str(referenceColumn) + " - " + str(referalData)))
     errorCount = errorDf.count()
     ratio = One - errorCount/registersAmount
-    #writeDf(innerDf)
-    return (RuleCodes.IntegrityRuleCode,','.join(testColumn),ratio, errorCount), errorDf
+    return (RuleCodes.IntegrityRuleCode,','.join(testColumn),ratio, errorCount)
 
 #Function / method that valides strings contained in a column
 # @object Variable containing dataframe
