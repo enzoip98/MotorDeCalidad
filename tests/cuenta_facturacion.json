@@ -1,21 +1,58 @@
 {
     "INPUT":{
-        "ROUTE":"ruta_cuenta_facturacion",
+        "PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/finanzas/facturacion/cuenta_facturacion/b2b/arg/2022/08/",
+		"ENTITY_ID" : "cuenta_facturacion",
         "HEADER" : "TRUE",
         "DELIMITER" : "|",
-        "COUNTRY" : "PE"
+        "PROJECT" : "B2B",
+		"ACCOUNT" :"fs.azure.account.key.adlseuedltb2b002.dfs.core.windows.net",
+		"KEY" : "gLVky28N5XlvBnJEVZnLLxY1ZKCuUIzPta4kC04CDP2uek1UxLd0YQ11UDB1dNUswQgzA1Gjq6Z8+AStiSd7SQ=="
     },
     "RULES":{
-            "103":{
+        "101":{
+            "FIELDS": ["ID_CLIENTE","ID_FACTURACION","ID_FACTURACION_CLIENTE"],
+            "OUTPUT" : {
+                "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/cuenta_facturacion/101",
+                "HEADER" : "TRUE",
+                "DELIMITER" : "|",
+                "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+                "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
+            }
+        }, 
+            "102":{
                 "FIELDS": ["ID_CLIENTE"],
-                "TOLERANCE":"0.95",
-                "IS_CRITICAL":"FALSE",
-                "INPUT": {
-                    "ROUTE" : "ruta_cliente",
+                "OUTPUT" : {
+                    "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/cuenta_facturacion/102",
                     "HEADER" : "TRUE",
                     "DELIMITER" : "|",
-                    "FIELDS" : ["ID_CLIENTE"]
+                    "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+                    "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
+                }
+            },
+            "103":{
+                "FIELDS": ["ID_CLIENTE"],
+                "INPUT": {
+                    "PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/persona/perfil_cliente/cliente/b2b/arg/2022/08",
+                    "HEADER" : "TRUE",
+                    "DELIMITER" : "|",
+                    "FIELDS" : ["ID_CLIENTE"],
+                    "ACCOUNT" :"fs.azure.account.key.adlseuedltb2b002.dfs.core.windows.net",
+					"KEY" : "gLVky28N5XlvBnJEVZnLLxY1ZKCuUIzPta4kC04CDP2uek1UxLd0YQ11UDB1dNUswQgzA1Gjq6Z8+AStiSd7SQ=="
+                }, 
+                "OUTPUT" : {
+                    "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/cuenta_facturacion/103_2",
+                    "HEADER" : "TRUE",
+                    "DELIMITER" : "|",
+                    "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+                    "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
                 }
             }
-    }
+        },
+        "OUTPUT" : {
+            "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/dq/finanzas/facturacion/cuenta_facturacion/b2b/arg/2022/08/",
+            "HEADER" : "TRUE",
+            "DELIMITER" : "|",
+            "ACCOUNT" :"fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+            "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
+        }
 }

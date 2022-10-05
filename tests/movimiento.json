@@ -1,44 +1,88 @@
 {
     "INPUT":{
-        "ROUTE":"ruta_movimiento",
+        "PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/interacciones/atencion_comercial/movimiento/b2b/arg/2022/08/01/",
+		"ENTITY_ID" : "movimiento",
         "HEADER" : "TRUE",
         "DELIMITER" : "|",
-        "COUNTRY" : "PE"
+        "PROJECT" : "B2B",
+		"ACCOUNT" :"fs.azure.account.key.adlseuedltb2b002.dfs.core.windows.net",
+		"KEY" : "gLVky28N5XlvBnJEVZnLLxY1ZKCuUIzPta4kC04CDP2uek1UxLd0YQ11UDB1dNUswQgzA1Gjq6Z8+AStiSd7SQ=="
     },
     "RULES":{
-            "103.1":{
-                "FIELDS": ["ID_CLIENTE"],
-                "TOLERANCE":"0.95",
-                "IS_CRITICAL":"FALSE",
-                "INPUT": {
-                    "ROUTE" : "ruta_cliente",
+        "101":{
+            "FIELDS": ["CANAL_MOVIMIENTO","CANAL_MOVIMIENTO_HOMOLOGADO","CODIGO_DIVISA","CODIGO_PLAN","ESTADO_SUSCRIPCION","FECHA_MOVIMIENTO", "FECHA_ULTIMA_EXTRACCION_LEGADO", "ID_CLIENTE", "ID_FACTURACION", "ID_FACTURACION_CLIENTE", "ID_MOVIMIENTO", "ID_MOVIMIENTO_LEGADO", "ID_SERVICIO", "ID_SERVICIO_MOVIMIENTO", "ID_SUSCRIPCION", "ID_SUSCRIPCION_CLIENTE", "NATURALEZA_PAGO", "NOMBRE_PLAN", "NOMBRE_PRODUCTO", "SISTEMA_LEGADO_ORIGEN", "SUSCRIPCION_ACTIVA", "TIPO_MOVIMIENTO", "TIPO_MOVIMIENTO_HOMOLOGADO", "TIPO_PRODUCTO"],
+            "OUTPUT" : {
+                "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/movimiento/101",
+                "HEADER" : "TRUE",
+                "DELIMITER" : "|",
+                "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+                "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
+            }
+        }, 
+        "102" : {
+            "FIELDS": ["ID_MOVIMIENTO"],
+                "OUTPUT" : {
+                    "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/movimiento/102",
                     "HEADER" : "TRUE",
                     "DELIMITER" : "|",
-                    "FIELDS" : ["ID_CLIENTE"]
+                    "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+                    "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
+                }
+        },
+            "103.1":{
+                "FIELDS": ["ID_CLIENTE"],
+                "INPUT": {
+                    "PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/persona/perfil_cliente/cliente/b2b/arg/2022/08",
+                    "HEADER" : "TRUE",
+                    "DELIMITER" : "|",
+                    "FIELDS" : ["ID_CLIENTE"],
+					"ACCOUNT" :"fs.azure.account.key.adlseuedltb2b002.dfs.core.windows.net",
+					"KEY" : "gLVky28N5XlvBnJEVZnLLxY1ZKCuUIzPta4kC04CDP2uek1UxLd0YQ11UDB1dNUswQgzA1Gjq6Z8+AStiSd7SQ=="
+                },
+                "OUTPUT": {
+                    "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/movimiento/103_1",
+                    "HEADER" : "TRUE",
+                    "DELIMITER" : "|",
+                    "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+                    "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
                 }
             },
             
             "103.2":{
                 "FIELDS": ["ID_FACTURACION", "ID_FACTURACION_CLIENTE"],
-                "TOLERANCE":"0.95",
-                "IS_CRITICAL":"FALSE",
                 "INPUT": {
-                    "ROUTE" : "ruta_cuenta_facturacion",
+                    "PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/finanzas/facturacion/cuenta_facturacion/b2b/arg/2022/08/",
                     "HEADER" : "TRUE",
                     "DELIMITER" : "|",
-                    "FIELDS" : ["ID_FACTURACION", "ID_FACTURACION_CLIENTE"]
+                    "FIELDS" : ["ID_FACTURACION_CLIENTE", "ID_FACTURACION"],
+                    "ACCOUNT" :"fs.azure.account.key.adlseuedltb2b002.dfs.core.windows.net",
+					"KEY" : "gLVky28N5XlvBnJEVZnLLxY1ZKCuUIzPta4kC04CDP2uek1UxLd0YQ11UDB1dNUswQgzA1Gjq6Z8+AStiSd7SQ=="
+                },
+                "OUTPUT": {
+                    "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/movimiento/103_2",
+                    "HEADER" : "TRUE",
+                    "DELIMITER" : "|",
+                    "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+                    "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
                 }
             },
 
             "103.3":{
                 "FIELDS": ["ID_SERVICIO","ID_SERVICIO_CLIENTE_PADRE","ID_SERVICIO_PADRE"],
-                "TOLERANCE":"0.95",
-                "IS_CRITICAL":"FALSE",
                 "INPUT": {
-                    "ROUTE" : "ruta_servicio",
+                    "PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/ventas/ventas_servicios_principales/servicio/b2b/arg/2022/08",
                     "HEADER" : "TRUE",
                     "DELIMITER" : "|",
-                    "FIELDS" : ["ID_SERVICIO","ID_SERVICIO_CLIENTE_PADRE","ID_SERVICIO_PADRE"]
+                    "FIELDS" : ["ID_CLIENTE","ID_SERVICIO_CLIENTE_PADRE","ID_SERVICIO_PADRE"],
+                    "ACCOUNT" :"fs.azure.account.key.adlseuedltb2b002.dfs.core.windows.net",
+					"KEY" : "gLVky28N5XlvBnJEVZnLLxY1ZKCuUIzPta4kC04CDP2uek1UxLd0YQ11UDB1dNUswQgzA1Gjq6Z8+AStiSd7SQ=="
+                },
+                "OUTPUT": {
+                    "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/movimiento/103_3",
+                    "HEADER" : "TRUE",
+                    "DELIMITER" : "|",
+                    "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+                    "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
                 }
             },
 
@@ -47,11 +91,38 @@
                 "TOLERANCE":"0.95",
                 "IS_CRITICAL":"FALSE",
                 "INPUT": {
-                    "ROUTE" : "ruta_suscripcion",
+                    "PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/ventas/suscripciones/suscripciones/b2b/arg/2022/08",
                     "HEADER" : "TRUE",
                     "DELIMITER" : "|",
-                    "FIELDS" : ["ID_SUSCRIPCION","ID_SUSCRIPCION_CLIENTE","SUSCRIPCION_ACTIVA"]
+                    "FIELDS" : ["ID_SUSCRIPCION","ID_SUSCRIPCION_CLIENTE","SUSCRIPCION_ACTIVA"],
+                    "ACCOUNT" :"fs.azure.account.key.adlseuedltb2b002.dfs.core.windows.net",
+					"KEY" : "gLVky28N5XlvBnJEVZnLLxY1ZKCuUIzPta4kC04CDP2uek1UxLd0YQ11UDB1dNUswQgzA1Gjq6Z8+AStiSd7SQ=="
+                },
+                "OUTPUT": {
+                    "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/movimiento/103_4",
+                    "HEADER" : "TRUE",
+                    "DELIMITER" : "|",
+                    "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+                    "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
                 }
+            },
+            "104": {
+                "FIELDS": ["FECHA_FIN_CONTRATO_SERVICIO", "FECHA_FIN_PERMANENCIA_SERVICIO", "FECHA_FIN_PROMOCION_SERVICIO", "FECHA_MOVIMIENTO", "FECHA_ULTIMA_EXTRACCION_LEGADO"],
+                "FORMAT_DATE": "yyyy-MM-dd",
+                    "OUTPUT" : {
+                        "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/movimiento/104",
+                        "HEADER" : "TRUE",
+                        "DELIMITER" : "|",
+                        "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+                        "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
+                    }
             }
+        },
+        "OUTPUT" : {
+            "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/dq/interacciones/atencion_comercial/movimiento/b2b/arg/2022/08/",
+            "HEADER" : "TRUE",
+            "DELIMITER" : "|",
+            "ACCOUNT" :"fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+            "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
         }
     }
