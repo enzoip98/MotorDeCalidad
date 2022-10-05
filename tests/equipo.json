@@ -65,6 +65,17 @@
                     "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
                     "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
                 }
+            },
+            "104": {
+                "FIELDS": ["FECHA_ALTA_EQUIPO", "FECHA_ULTIMA_EXTRACCION_LEGADO"],
+                "FORMAT_DATE": "yyyy-MM-dd",
+                    "OUTPUT" : {
+                        "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/equipo/104",
+                        "HEADER" : "TRUE",
+                        "DELIMITER" : "|",
+                        "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+                        "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
+                    }
             }
         },
 	"OUTPUT" : {

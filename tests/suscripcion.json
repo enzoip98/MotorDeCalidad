@@ -9,6 +9,16 @@
 		"KEY" : "gLVky28N5XlvBnJEVZnLLxY1ZKCuUIzPta4kC04CDP2uek1UxLd0YQ11UDB1dNUswQgzA1Gjq6Z8+AStiSd7SQ=="
     },
     "RULES":{
+        "101":{
+            "FIELDS": ["ESTADO_SUSCRIPCION","FECHA_ALTA_SUSCRIPCION","ID_CLIENTE","ID_FACTURACION","ID_FACTURACION_CLIENTE","ID_SUSCRIPCION", "ID_SUSCRIPCION_CLIENTE", "SUSCRIPCION_ACTIVA"],
+            "OUTPUT" : {
+                "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/suscripcion/101",
+                "HEADER" : "TRUE",
+                "DELIMITER" : "|",
+                "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+                "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
+            }
+        }, 
         "102" : {
             "FIELDS": ["ID_SUSCRIPCION"],
                 "OUTPUT" : {
@@ -56,6 +66,17 @@
                     "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
                     "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
                 }
+            },
+            "104": {
+                "FIELDS": ["FECHA_ALTA_SUSCRIPCION", "FECHA_BAJA_SUSCRIPCION"],
+                "FORMAT_DATE": "yyyy-MM-dd",
+                    "OUTPUT" : {
+                        "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/suscripcion/104",
+                        "HEADER" : "TRUE",
+                        "DELIMITER" : "|",
+                        "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+                        "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
+                    }
             }
         },
         "OUTPUT" : {

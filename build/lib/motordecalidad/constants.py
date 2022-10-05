@@ -39,3 +39,4 @@ TestedRegisterAmountColumn = "tested_registers_amount"
 FailedRegistersAmountColumn = "failed_registers_amount"
 ZoneColumn = "zone"
 OutputDataFrameColumns = [RuleCodeColumn,TestedFieldsColumn,SucessRateColumn,FailedRegistersAmountColumn]
+PermitedFormatDate = ['yyyy-MM-dd','yyyy/MM/dd', 'yyyyMMdd', 'yyyyMM']
