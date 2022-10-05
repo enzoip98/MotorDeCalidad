@@ -1,6 +1,6 @@
 {
     "INPUT":{
-		"PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/producto/catalogo_terminales/equipo/b2b/col/2022/08",
+		"PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/producto/catalogo_terminales/equipo/b2b/arg/2022/08",
 		"ENTITY_ID" : "equipo",
         "HEADER" : "TRUE",
         "DELIMITER" : "|",
@@ -12,10 +12,10 @@
 			"101":{
                 "FIELDS": ["ID_CLIENTE","ID_EQUIPO","ID_EQUIPO_CLIENTE","NOMBRE_EQUIPO","FECHA_ALTA_EQUIPO","FECHA_ULTIMA_EXTRACCION_LEGADO"],
                 "OUTPUT" : {
-                    "PATH" : "://rules@adlseu2edthdev001.blob.core.windows.net/test_error/101",
+                    "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/equipo/101",
                     "HEADER" : "TRUE",
                     "DELIMITER" : "|",
-                    "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.dfs.core.windows.net",
+                    "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
                     "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
                 }
             }, 
@@ -23,17 +23,17 @@
 			"102":{
                 "FIELDS": ["ID_EQUIPO"],
                 "OUTPUT" : {
-                    "PATH" : "://rules@adlseu2edthdev001.blob.core.windows.net/test_error/102",
+                    "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/equipo/102",
                     "HEADER" : "TRUE",
                     "DELIMITER" : "|",
-                    "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.dfs.core.windows.net",
+                    "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
                     "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
                 }
             },
             "103.1":{
                 "FIELDS": ["ID_CLIENTE"],
                 "INPUT": {
-					"PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/persona/perfil_cliente/cliente/b2b/col/2022/08",
+					"PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/persona/perfil_cliente/cliente/b2b/arg/2022/08",
                     "HEADER" : "TRUE",
                     "DELIMITER" : "|",
                     "FIELDS" : ["ID_CLIENTE"],
@@ -41,17 +41,17 @@
 					"KEY" : "gLVky28N5XlvBnJEVZnLLxY1ZKCuUIzPta4kC04CDP2uek1UxLd0YQ11UDB1dNUswQgzA1Gjq6Z8+AStiSd7SQ=="
                 }, 
                 "OUTPUT" : {
-                    "PATH" : "://rules@adlseu2edthdev001.blob.core.windows.net/test_error/103_1",
+                    "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/equipo/103_1",
                     "HEADER" : "TRUE",
                     "DELIMITER" : "|",
-                    "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.dfs.core.windows.net",
+                    "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
                     "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
                 }
             },
             "103.2":{
                 "FIELDS": ["ID_SUSCRIPCION","ID_SUSCRIPCION_CLIENTE"],
                 "INPUT": {
-					"PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/ventas/suscripciones/suscripciones/b2b/col/2022/08",
+					"PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/ventas/suscripciones/suscripciones/b2b/arg/2022/08",
                     "HEADER" : "TRUE",
                     "DELIMITER" : "|",
                     "FIELDS" : ["ID_SUSCRIPCION","ID_SUSCRIPCION_CLIENTE"],
@@ -59,16 +59,16 @@
 					"KEY" : "gLVky28N5XlvBnJEVZnLLxY1ZKCuUIzPta4kC04CDP2uek1UxLd0YQ11UDB1dNUswQgzA1Gjq6Z8+AStiSd7SQ=="
                 }, 
                 "OUTPUT" : {
-                    "PATH" : "://rules@adlseu2edthdev001.blob.core.windows.net/test_error/103_2",
+                    "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/equipo/103_2",
                     "HEADER" : "TRUE",
                     "DELIMITER" : "|",
-                    "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.dfs.core.windows.net",
+                    "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
                     "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
                 }
             }
         },
 	"OUTPUT" : {
-		"PATH" : "://rules@adlseu2edthdev001.blob.core.windows.net/dq/producto/catalogo_terminales/equipo/b2b/col/2022/08/",
+		"PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/dq/producto/catalogo_terminales/equipo/b2b/arg/2022/08/",
         "HEADER" : "TRUE",
         "DELIMITER" : "|",
 		"ACCOUNT" :"fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",

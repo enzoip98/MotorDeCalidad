@@ -4,9 +4,11 @@ class RuleCodes:
     NullRuleCode = "101"
     DuplicatedRuleCode = "102"
     IntegrityRuleCode = "103"
-    CheckStringRuleCode = "104"
-    CheckBoolRuleCode = "105"
-    CheckComillasDoblesRuleCode = "106"
+    FormateDateCode = "104"
+
+    CheckStringRuleCode = "106"
+    CheckBoolRuleCode = "107"
+    CheckComillasDoblesRuleCode = "108"
 class JsonParts:
     Input = "INPUT"
     Output = "OUTPUT"
@@ -20,6 +22,7 @@ class JsonParts:
     Path = "PATH"
     Account = "ACCOUNT"
     Key = "KEY"
+    FormatDate = "FORMAT_DATE"
 
 
 LeftAntiType = "leftanti"
