@@ -1,11 +1,18 @@
 ##Constants
 
-class RuleCodes:
-    NullRuleCode = "101"
-    DuplicatedRuleCode = "102"
-    IntegrityRuleCode = "103"
-    FormateDateCode = "104"
-
+class Rules:
+    class NullRule:
+        name = "Nulo"
+        code = "101"
+    class DuplicatedRule:
+        name = "Duplicado"
+        code = "102"
+    class IntegrityRule:
+        name = "Integridad Referencial"
+        code = "103"
+    class FormatDate:
+        name = "Formato de Fecha"
+        code = "104"
     CheckStringRuleCode = "106"
     CheckBoolRuleCode = "107"
     CheckComillasDoblesRuleCode = "108"
@@ -34,9 +41,10 @@ ProjectColumn = "project"
 AuditDateColumn = "audit_date"
 TestedFieldsColumn = "tested_fields"
 RuleCodeColumn = "rule_code"
+RuleColumn = "rule"
 SucessRateColumn = "sucess_rate"
 TestedRegisterAmountColumn = "tested_registers_amount"
 FailedRegistersAmountColumn = "failed_registers_amount"
 ZoneColumn = "zone"
-OutputDataFrameColumns = [RuleCodeColumn,TestedFieldsColumn,SucessRateColumn,FailedRegistersAmountColumn]
+OutputDataFrameColumns = [RuleColumn,TestedFieldsColumn,SucessRateColumn,FailedRegistersAmountColumn]
 PermitedFormatDate = ['yyyy-MM-dd','yyyy/MM/dd', 'yyyyMMdd', 'yyyyMM']
