@@ -1,0 +1,47 @@
+{
+    "INPUT":{
+		"COUNTRY_ID" : "ARG",
+        "PROJECT" : "PARQUE Y MOVIMIENTOS B2B",
+		"ENTITY_ID" : "CLIENTE",
+		"DOMAIN" : "PERSONA",
+		"SUB_DOMAIN" : "PERFIL_CLIENTE",
+		"SEGMENT" : "B2B",
+		"AREA" : "COMERCIAL",
+		"PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/persona/perfil_cliente/cliente/b2b/col/2022/07",
+        "HEADER" : "TRUE",
+        "DELIMITER" : "|",
+		"ACCOUNT" :"fs.azure.account.key.adlseuedltb2b002.dfs.core.windows.net",
+		"KEY" : "gLVky28N5XlvBnJEVZnLLxY1ZKCuUIzPta4kC04CDP2uek1UxLd0YQ11UDB1dNUswQgzA1Gjq6Z8+AStiSd7SQ=="
+    },
+    "RULES":{
+        "101":{
+            "FIELDS": ["ID_CLIENTE","ID_FISCAL_CLIENTE","ID_PAIS","ID_TIPO_FISCAL","NOMBRE_CLIENTE"],
+            "THRESHOLD" : "100",
+			"OUTPUT" : {
+                "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/cliente/101",
+                "HEADER" : "TRUE",
+                "DELIMITER" : "|",
+                "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+                "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
+            }
+        }, 
+        "102" : {
+            "FIELDS": ["ID_CLIENTE"],
+			"THRESHOLD" : "100",
+                "OUTPUT" : {
+                    "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/cliente/102",
+                    "HEADER" : "TRUE",
+                    "DELIMITER" : "|",
+                    "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+                    "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
+                }
+        },
+			},
+        "OUTPUT" : {
+            "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/dq/ventas/suscripciones/suscripciones/b2b/arg/2022/08/",
+            "HEADER" : "TRUE",
+            "DELIMITER" : "|",
+            "ACCOUNT" :"fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+            "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
+        }
+    }

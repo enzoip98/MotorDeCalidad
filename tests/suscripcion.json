@@ -1,17 +1,23 @@
 {
     "INPUT":{
-        "PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/ventas/suscripciones/suscripciones/b2b/arg/2022/08",
-		"ENTITY_ID" : "suscripcion",
+		"COUNTRY_ID" : "ARG",
+        "PROJECT" : "PARQUE Y MOVIMIENTOS B2B",
+		"ENTITY_ID" : "SUSCRIPCIONES",
+		"DOMAIN" : "VENTAS",
+		"SUB_DOMAIN" : "SUSCRIPCIONES",
+		"SEGMENT" : "B2B",
+		"AREA" : "COMERCIAL",
+		"PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/ventas/suscripciones/suscripciones/b2b/arg/2022/08",
         "HEADER" : "TRUE",
         "DELIMITER" : "|",
-        "PROJECT" : "B2B",
 		"ACCOUNT" :"fs.azure.account.key.adlseuedltb2b002.dfs.core.windows.net",
 		"KEY" : "gLVky28N5XlvBnJEVZnLLxY1ZKCuUIzPta4kC04CDP2uek1UxLd0YQ11UDB1dNUswQgzA1Gjq6Z8+AStiSd7SQ=="
     },
     "RULES":{
         "101":{
             "FIELDS": ["ESTADO_SUSCRIPCION","FECHA_ALTA_SUSCRIPCION","ID_CLIENTE","ID_FACTURACION","ID_FACTURACION_CLIENTE","ID_SUSCRIPCION", "ID_SUSCRIPCION_CLIENTE", "SUSCRIPCION_ACTIVA"],
-            "OUTPUT" : {
+            "THRESHOLD" : "100",
+			"OUTPUT" : {
                 "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/suscripcion/101",
                 "HEADER" : "TRUE",
                 "DELIMITER" : "|",
@@ -21,6 +27,7 @@
         }, 
         "102" : {
             "FIELDS": ["ID_SUSCRIPCION"],
+			"THRESHOLD" : "100",
                 "OUTPUT" : {
                     "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/suscripcion/102",
                     "HEADER" : "TRUE",
@@ -31,6 +38,7 @@
         },
             "103.1":{
                 "FIELDS": ["ID_CLIENTE"],
+				"THRESHOLD" : "100",
                 "INPUT": {
                     "PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/persona/perfil_cliente/cliente/b2b/arg/2022/08",
                     "HEADER" : "TRUE",
@@ -51,6 +59,7 @@
             
             "103.2":{
                 "FIELDS": ["ID_FACTURACION_CLIENTE", "ID_FACTURACION"],
+				"THRESHOLD" : "100",
                 "INPUT": {
                     "PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/finanzas/facturacion/cuenta_facturacion/b2b/arg/2022/08/",
                     "HEADER" : "TRUE",
@@ -70,6 +79,7 @@
             "104": {
                 "FIELDS": ["FECHA_ALTA_SUSCRIPCION", "FECHA_BAJA_SUSCRIPCION"],
                 "FORMAT_DATE": "yyyy-MM-dd",
+				"THRESHOLD" : "100",
                     "OUTPUT" : {
                         "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/suscripcion/104",
                         "HEADER" : "TRUE",
@@ -77,7 +87,19 @@
                         "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
                         "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
                     }
-            }
+            },
+			"106": {
+				"FIELDS": ["SUSCRIPCION_ACTIVA"],
+				"LIST_VALUES": ["0", "1"],
+				"THRESHOLD" : "100",
+					"OUTPUT": {
+						"PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/suscripcion/106",
+                        "HEADER" : "TRUE",
+                        "DELIMITER" : "|",
+                        "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+                        "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
+					}
+			}
         },
         "OUTPUT" : {
             "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/dq/ventas/suscripciones/suscripciones/b2b/arg/2022/08/",

@@ -1,16 +1,22 @@
 {
     "INPUT":{
-        "PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/ventas/ventas_servicios_principales/servicio/b2b/arg/2022/08",
-		"ENTITY_ID" : "servicio",
+		"COUNTRY_ID" : "ARG",
+        "PROJECT" : "PARQUE Y MOVIMIENTOS B2B",
+		"ENTITY_ID" : "SERVICIO",
+		"DOMAIN" : "VENTAS",
+		"SUB_DOMAIN" : "VENTAS_SERVICIOS_PRINCIPALES",
+		"SEGMENT" : "B2B",
+		"AREA" : "COMERCIAL",
+		"PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/ventas/ventas_servicios_principales/servicio/b2b/arg/2022/08",
         "HEADER" : "TRUE",
         "DELIMITER" : "|",
-        "PROJECT" : "B2B",
 		"ACCOUNT" :"fs.azure.account.key.adlseuedltb2b002.dfs.core.windows.net",
 		"KEY" : "gLVky28N5XlvBnJEVZnLLxY1ZKCuUIzPta4kC04CDP2uek1UxLd0YQ11UDB1dNUswQgzA1Gjq6Z8+AStiSd7SQ=="
     },
     "RULES":{
             "101" : {
                 "FIELDS": ["CODIGO_DIVISA","CODIGO_PLAN","FECHA_ALTA_SERVICIO","FECHA_ULTIMA_EXTRACCION_LEGADO"],
+				"THRESHOLD" : "100",
                 "OUTPUT" : {
                     "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/servicio/101",
                     "HEADER" : "TRUE",
@@ -21,6 +27,7 @@
             },
             "102" : {
                 "FIELDS": ["ID_SERVICIO"],
+				"THRESHOLD" : "100",
                     "OUTPUT" : {
                         "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/servicio/102",
                         "HEADER" : "TRUE",
@@ -31,6 +38,7 @@
             },
             "103":{
                 "FIELDS": ["ID_CLIENTE"],
+				"THRESHOLD" : "100",
                 "INPUT": {
                     "PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/persona/perfil_cliente/cliente/b2b/arg/2022/08",
                     "HEADER" : "TRUE",
@@ -50,6 +58,7 @@
             "104": {
                 "FIELDS": ["FECHA_ALTA_SERVICIO", "FECHA_BAJA_SERVICIO", "FECHA_FIN_CONTRATO_SERVICIO", "FECHA_FIN_PERMANENCIA_SERVICIO", "FECHA_FIN_PROMOCION_SERVICIO", "FECHA_ULTIMA_EXTRACCION_LEGADO"],
                 "FORMAT_DATE": "yyyy-MM-dd",
+				"THRESHOLD" : "100",
                     "OUTPUT" : {
                         "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/servicio/104",
                         "HEADER" : "TRUE",
@@ -57,7 +66,18 @@
                         "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
                         "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
                     }
-            }
+            },
+			"106.3": {
+				"FIELDS": ["TIPO_PRODUCTO"],
+				"LIST_VALUES": ["MOVIL VOZ", "BAM","SVA","STB","BAF","TV","OTROS"],
+				"THRESHOLD" : "100",
+					"OUTPUT": {
+						"PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/servicio/106",
+                        "HEADER" : "TRUE",
+                        "DELIMITER" : "|",
+                        "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+                        "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
+					}
     },
     "OUTPUT" : {
         "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/dq/ventas/ventas_servicios_principales/servicio/b2b/arg/2022/08/",
