@@ -6,6 +6,7 @@ from pyspark.sql.types import StringType, IntegerType
 from motordecalidad.constants import *
 import datetime
 import time
+import operator
 
 print("Motor de Calidad Version Beta 1.3")
 
@@ -235,7 +236,7 @@ def validateReferentialIntegrity(
     referenceDataFrame = readDf(referalData)
     errorDf = testDataFrame.select(testColumn).join(referenceDataFrame.select(referenceColumn).toDF(*testColumn), on = testColumn, how = LeftAntiType)
     errorCount = errorDf.count()
-    ratio = (One - errorCount/registersAmount) * OneHundred
+    ratio = (One - errorCount/registersAmount) * 100
     return (registersAmount,Rules.IntegrityRule.code,Rules.IntegrityRule.name,Rules.IntegrityRule.property,Rules.IntegrityRule.code + "/" + entity + "/" + fieldString,threshold,dataRequirement,fieldString,ratio, errorCount), errorDf
 
 
@@ -250,46 +251,63 @@ def validateFormatDate(object:DataFrame,
     errorDf = object.withColumn("output", to_date(col(columnName), formatDate))\
     .filter(col("output").isNull()).drop("output")
     errorCount = errorDf.count()
-    ratio = (One - errorCount/registerAmount) * OneHundred
+    ratio = (One - errorCount/registerAmount) * 100
     return (registerAmount,Rules.FormatDate.code,Rules.FormatDate.name + " - " + formatDate,Rules.FormatDate.property,Rules.FormatDate.code + "/" + entity + "/" + columnName,threshold,dataRequirement,columnName,ratio, errorCount), errorDf
 
 def validateRange(object:DataFrame,
     columnName:StringType,
     registerAmount:IntegerType,
-    entity:StringType,
+    entity,
     threshold,
     minRange:float = None,
     maxRange:float = None,
-    includedLimit:bool = True,
+    includeLimitRight:bool = True,
+    includeLimitLeft:bool = True,
     inclusive:bool = True,):
-    dataRequirement = f"El atributo {entity}.{columnName}, debe ser tipo float sólo tomando los valores entre {minRange} o {maxRange}."
+    dataRequirement =  f"El atributo {entity}.{columnName}, debe estar entre los valores {minRange} y {maxRange}"
+    opel,opeg=chooseComparisonOparator(includeLimitLeft,includeLimitRight,inclusive)
 
     if inclusive:
-        if includedLimit:
-            if minRange is None and maxRange is not None:
-                errorDf = object.filter(col(columnName) <= maxRange)
-            elif minRange is not None and maxRange is None:
-                errorDf = object.filter(col(columnName) >= minRange)
-            else: 
-                errorDf = object.filter((minRange >= col(columnName)) & (col(columnName) <= maxRange))
-        
-        else:
-            if minRange is None and maxRange is not None:
-                errorDf = object.filter(col(columnName) < maxRange)
-            elif minRange is not None and maxRange is None:
-                errorDf = object.filter(col(columnName) > minRange)
-            else: 
-                errorDf = object.filter((minRange > col(columnName)) & (col(columnName) < maxRange))
+        if minRange is None and maxRange is not None:
+            errorDf = object.filter(opeg(col(columnName),maxRange))
+        elif minRange is not None and maxRange is None:
+            errorDf = object.filter(opel(col(columnName), minRange))
+        else: 
+            errorDf = object.filter(opel(col(columnName),minRange) | opeg(col(columnName),maxRange))       
     else:
-        if includedLimit: 
-            errorDf = object.filter((minRange > col(columnName)) & (col(columnName) < maxRange))
-        else:
-            errorDf = object.filter((minRange >= col(columnName)) & (col(columnName) <= maxRange))
-    
-    errorCount = errorDf.count()
-    ratio = One - errorCount/registerAmount
+        errorDf = object.filter(opel(col(columnName),minRange) & opeg(col(columnName),maxRange))
 
-    return (registerAmount,Rules.RangeRule.code,Rules.RangeRule.name,Rules.RangeRule.property,Rules.RangeRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement,columnName, ratio, errorCount), errorDf 
+    errorCount = errorDf.count()
+    ratio = 1 - errorCount/registerAmount
+
+    return (registerAmount,Rules.RangeRule.code,Rules.RangeRule.name,Rules.RangeRule.property,Rules.RangeRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement, columnName, ratio, errorCount), errorDf
+
+def chooseComparisonOparator(includeLimitLeft:bool,includeLimitRight:bool,inclusive:bool):
+    res=[]
+    if inclusive:
+        if includeLimitLeft:
+            res.append(operator.lt)
+        else:
+            res.append(operator.le)
+
+        if includeLimitRight:
+            res.append(operator.gt)
+        else:
+            res.append(operator.ge)
+
+    else:
+        if includeLimitLeft:
+            res.append(operator.ge)
+        else:
+            res.append(operator.gt)
+
+        if includeLimitRight:
+            res.append(operator.le)
+        else:
+            res.append(operator.lt)
+    
+    return res[0],res[1]
+
 
 
 def validateCatalog(object:DataFrame,
@@ -298,7 +316,8 @@ def validateCatalog(object:DataFrame,
     registerAmount:IntegerType,
     entity:StringType,
     threshold):
-    dataRequirement = f"El atributo {entity}.{columnName}, debe tomar solo los valores {','.join(listValues)}."
+    fieldsString = ','.join(listValues)
+    dataRequirement = f"El atributo {entity}.{columnName}, debe tomar solo los valores {fieldsString}."
     errorDf = object.filter(~col(columnName).isin(listValues))
 
     errorCount = errorDf.count()

@@ -67,9 +67,33 @@
                         "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
                     }
             },
-			"106.3": {
+			"105.1": {
+				"FIELDS": ["IMPORTE_MENSUAL_CON_DESCUENTO"],
+				"THRESHOLD" : "100",
+				"MIN_RANGE": "0",
+                    "OUTPUT" : {
+                        "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/servicio/105_1",
+                        "HEADER" : "TRUE",
+                        "DELIMITER" : "|",
+                        "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+                        "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
+                    }
+			},
+			"105.2": {
+				"FIELDS": ["IMPORTE_MENSUAL_SIN_DESCUENTO"],
+				"THRESHOLD" : "100",
+				"MIN_RANGE": "0",
+                    "OUTPUT" : {
+                        "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/servicio/105_2",
+                        "HEADER" : "TRUE",
+                        "DELIMITER" : "|",
+                        "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+                        "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
+                    }
+			},
+			"106": {
 				"FIELDS": ["TIPO_PRODUCTO"],
-				"LIST_VALUES": ["MOVIL VOZ", "BAM","SVA","STB","BAF","TV","OTROS"],
+				"VALUES": ["MOVIL VOZ", "BAM","SVA","STB","BAF","TV","OTROS"],
 				"THRESHOLD" : "100",
 					"OUTPUT": {
 						"PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/servicio/106",
@@ -78,7 +102,8 @@
                         "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
                         "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
 					}
-    },
+			}
+	},
     "OUTPUT" : {
         "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/dq/ventas/ventas_servicios_principales/servicio/b2b/arg/2022/08/",
         "HEADER" : "TRUE",
