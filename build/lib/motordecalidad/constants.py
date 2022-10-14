@@ -3,11 +3,11 @@ from pyspark.sql.functions import col
 class Rules:
     class NullRule:
         name = "Completitud"
-        property = "Completitud de registro"
+        property = "Completitud de Registro"
         code = "101"
     class DuplicatedRule:
         name = "Consistencia"
-        property = "Riesgo de inconsistencia"
+        property = "Riesgo de Inconsistencia"
         code = "102"
     class IntegrityRule:
         name = "Consistencia"
@@ -17,6 +17,14 @@ class Rules:
         name = "Exactitud"
         property = "Exactitud Sintactica"
         code = "104"
+    class RangeRule:
+        name = "Exactitud"
+        property = "Rango de Exactitud"
+        code = "105"
+    class CatalogRule:
+        name = "Exactitud"
+        property = "Exactitud Sintactica"
+        code = "106"
     CheckStringRuleCode = "106"
     CheckBoolRuleCode = "107"
     CheckComillasDoblesRuleCode = "108"
@@ -39,11 +47,15 @@ class JsonParts:
     Segment = "SEGMENT"
     Area = "AREA"
     Threshold = "THRESHOLD"
+    Values = "VALUES"
+    MinRange = "MIN_RANGE"
+    MaxRange = "MAX_RANGE"
 
 
 LeftAntiType = "leftanti"
 One = 1
 Zero = 0
+OneHundred = 100
 class Field:
     def __init__(self,colName):
         self.name = colName
