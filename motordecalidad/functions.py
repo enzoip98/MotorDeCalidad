@@ -50,17 +50,23 @@ def readDf(input):
     return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(input.get(JsonParts.Path))
 
 def writeDf(object:DataFrame,output):
-    
-    header = output.get(JsonParts.Header)
-    spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
-    object.coalesce(One).write.mode("overwrite").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path)))
-    return print("Se escribio en el blob")
+
+    if output != None :
+        header:StringType = output.get(JsonParts.Header)
+        spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
+        object.coalesce(One).write.mode("overwrite").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path)))
+        print("Se escribio en el blob")
+    else:
+        print("Se omitio escritura")
 
 def writeDfappend(object:DataFrame,output):
-    header = output.get(JsonParts.Header)
-    spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
-    object.coalesce(One).write.mode("append").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path)))
-    return print("Se escribio en el blob")
+    if output != None :
+        header:StringType = output.get(JsonParts.Header)
+        spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
+        object.coalesce(One).write.mode("append").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path)))
+        print("Se escribio en el blob")
+    else:
+        print("Se omitio escritura")
 
 #Function that validate rules going through the defined options
 def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity: StringType, project:StringType,country,domain,subDomain,segment,area):
