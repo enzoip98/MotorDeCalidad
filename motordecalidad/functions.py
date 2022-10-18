@@ -1,7 +1,7 @@
 import json
 from typing import List
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import col, lit, to_date
+from pyspark.sql.functions import *
 from pyspark.sql.types import StringType, IntegerType
 from motordecalidad.constants import *
 import datetime
@@ -179,6 +179,24 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
                     writeDfappend(errorTotal, rules[code].get(JsonParts.Output))
                 rulesData.append(data)
                 print("regla de rango: %s segundos" % (time.time() - t))
+        
+        elif code == Rules.ForbiddenRule.code:
+            print("Inicializando regla de caracteres prohibidos")
+            columnName = rules[code].get(JsonParts.Fields)
+            threshold = rules[code].get(JsonParts.Threshold)
+            listValues = rules[code].get(JsonParts.Values)
+
+            for field in columnName :
+                t = time.time()
+                data, errorDf = validateForbiddenCharacters(object,field,listValues,registerAmount,entity,threshold)
+                errorDesc = "Caracteres prohibidos - " + field
+                if data[-One] > Zero:
+                    errorTotal = errorDf.withColumn("error", lit(errorDesc))\
+                    .withColumn("run_time",lit(runTime))
+                    writeDfappend(errorTotal, rules[code].get(JsonParts.Output))
+                rulesData.append(data)
+                print("regla de caracteres prohibidos: %s segundos" % (time.time() - t))
+
         else:
             pass
     validationData:DataFrame = spark.createDataFrame(data = rulesData, schema = OutputDataFrameColumns)
@@ -315,7 +333,6 @@ def chooseComparisonOparator(includeLimitLeft:bool,includeLimitRight:bool,inclus
     return res[0],res[1]
 
 
-
 def validateCatalog(object:DataFrame,
     columnName:StringType, 
     listValues:list,
@@ -332,39 +349,24 @@ def validateCatalog(object:DataFrame,
     return (registerAmount,Rules.CatalogRule.code,Rules.CatalogRule.name,Rules.CatalogRule.property,Rules.CatalogRule.code + "/" + entity + columnName ,threshold,dataRequirement,columnName, ratio, errorCount), errorDf 
 
 
-#Function / method that valides strings contained in a column
-# @object Variable containing dataframe
-# @columnName Variable containing the column name of the df
-# @wordList Variable type list containing the exact words that the column needs to have
-# @registersAmount Count of total registers in column
-def checkContain(columnName, wordList: list, object, registersAmount):
-    countString = object.filter((object.columnName).isin(wordList)).count()
-    ratio = countString/registersAmount
-    return(Rules.CheckStringRuleCode, columnName, ratio, countString)
+def validateForbiddenCharacters(object:DataFrame,
+    columnName:StringType, 
+    listValues:list,
+    registerAmount:IntegerType,
+    entity:StringType,
+    threshold):
 
-#Function than validates type bool [0,1] contained in column
-# @object Variable containing dataframe
-# @columnName Variable containing the column name of the df
-# @registersAmount Count of total registers in column
-def checkBool(columnName, object, registersAmount):
-    countBool = object.filter((object.columnName).isin([0,1])).count()
-    ratio = countBool/registersAmount
-    return(Rules.CheckBoolRuleCode, columnName, ratio, countBool)
+    fieldsString = ','.join(listValues)
 
-#Function that validates the amount of strings that contain "".
-# @object Variable containing dataframe
-# @columnName Variable containing the column name of the df
-# @registersAmount Count of total registers in column
-def checkComillasDobles(columnName, object, registersAmount):
-    countComillas = object.filter(col(columnName).rlike("(?i)^*""$")).count()
-    ratio = countComillas/registersAmount
-    return(Rules.CheckComillasDoblesRuleCode, columnName, ratio, countComillas)
+    dataRequirement = f"El atributo {entity}.{columnName}, no debe contener los siguentes caracteres: {fieldsString}."
 
-#Function that validates the amount of strings that contain "".
-# @object Variable containing dataframe
-# @columnName Variable containing the column name of the df
-# @registersAmount Count of total registers in column
-def checkTypeFloat(columnName, object, registersAmount):
-    countFloat = object.filter(col(columnName).rlike("(?i)^*.00$")).count()
-    ratio = countFloat/registersAmount
-    return(Rules.CheckComillasDoblesRuleCode, columnName, ratio, countFloat)
+    vals="["+"".join(listValues)+"]"
+    object = object.withColumn("replaced", regexp_replace(col(columnName),vals, ""))
+
+    errorDf=object.filter(col(columnName)!=col('replaced')).drop('replaced')
+
+    errorCount = errorDf.count()
+    ratio = 1 - errorCount/registerAmount
+
+    return (registerAmount, Rules.ForbiddenRule.code,Rules.ForbiddenRule.name,Rules.ForbiddenRule.property,Rules.ForbiddenRule.code + "/" + entity + columnName ,threshold,dataRequirement, columnName, ratio, errorCount), errorDf 
+

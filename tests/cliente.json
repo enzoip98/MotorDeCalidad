@@ -35,7 +35,19 @@
                     "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
                     "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
                 }
-        },
+        }, 
+        "107" : {
+            "FIELDS": ["ID_CLIENTE", "ID_CLIENTE_SF", "ID_FISCAL_CLIENTE", "ID_PAIS", "ID_TIPO_FISCAL", "NOMBRE_CLIENTE"],
+            "VALUES": ["\""],
+			"THRESHOLD" : "100",
+                "OUTPUT" : {
+                    "PATH" : "wasbs://rules@adlseu2esdthdev001.blob.core.windows.net/test_error/cliente/107",
+                    "HEADER" : "TRUE",
+                    "DELIMITER" : "|",
+                    "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+                    "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
+                }
+        }
 			},
         "OUTPUT" : {
             "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/dq/ventas/suscripciones/suscripciones/b2b/arg/2022/08/",
