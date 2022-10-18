@@ -25,9 +25,11 @@ class Rules:
         name = "Exactitud"
         property = "Exactitud Sintactica"
         code = "106"
-    CheckStringRuleCode = "106"
-    CheckBoolRuleCode = "107"
-    CheckComillasDoblesRuleCode = "108"
+    class ForbiddenRule:
+        name = "Exactitud"
+        property = "Exactitud Sintactica"
+        code = "107"
+
 class JsonParts:
     Input = "INPUT"
     Output = "OUTPUT"

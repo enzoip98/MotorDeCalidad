@@ -91,7 +91,7 @@
             },
 			"106.1": {
 				"FIELDS": ["NATURALEZA_PAGO"],
-				"LIST_VALUES": ["Prepago", "Pospago", "Hibrido"],
+				"VALUES": ["Prepago", "Pospago", "Hibrido"],
 				"THRESHOLD" : "100",
 					"OUTPUT": {
 						"PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/equipo/106_1",
@@ -103,7 +103,7 @@
 			},
 			"106.2": {
 				"FIELDS": ["SUSCRIPCION_ACTIVA"],
-				"LIST_VALUES": ["0", "1"],
+				"VALUES": ["0", "1"],
 				"THRESHOLD" : "100",
 					"OUTPUT": {
 						"PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/equipo/106_2",
@@ -115,7 +115,7 @@
 			},
 			"106.3": {
 				"FIELDS": ["TIPO_PRODUCTO"],
-				"LIST_VALUES": ["MOVIL VOZ", "BAM","SVA","STB","BAF","TV","OTROS"],
+				"VALUES": ["MOVIL VOZ", "BAM","SVA","STB","BAF","TV","OTROS"],
 				"THRESHOLD" : "100",
 					"OUTPUT": {
 						"PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/equipo/106_3",
@@ -124,7 +124,19 @@
                         "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
                         "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
 					}
-			}
+			}, 
+            "107" : {
+                "FIELDS": ["DESCRIPCION_EQUIPO", "GAMA_EQUIPO", "ID_CLIENTE", "ID_EQUIPO", "ID_EQUIPO_CLIENTE", "ID_SERVICIO", "ID_SUSCRIPCION", "ID_SUSCRIPCION_CLIENTE", "IMEI_EQUIPO_CLIENTE", "IMSI_EQUIPO_CLIENTE", "MARCA_EQUIPO", "MODELO_EQUIPO", "NOMBRE_EQUIPO", "TIPO_EQUIPO"],
+                "VALUES": ["\""],
+                "THRESHOLD" : "100",
+                    "OUTPUT" : {
+                        "PATH" : "wasbs://rules@adlseu2esdthdev001.blob.core.windows.net/test_error/cliente/107",
+                        "HEADER" : "TRUE",
+                        "DELIMITER" : "|",
+                        "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+                        "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
+                    }
+            }
         },
 	"OUTPUT" : {
 		"PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/dq/producto/catalogo_terminales/equipo/b2b/arg/2022/08/",
