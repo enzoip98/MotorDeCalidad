@@ -150,7 +150,31 @@
                         "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
                         "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
                     }
-			}
+			}, 
+            "107" : {
+                "FIELDS": ["CANAL_MOVIMIENTO", "CANAL_MOVIMIENTO_HOMOLOGADO", "CODIGO_DIVISA", "CODIGO_PLAN", "ESTADO_SERVICIO", "ESTADO_SUSCRIPCION", "ID_AGENTE_MOVIMIENTO", "ID_CLIENTE", "ID_FACTURACION", "ID_FACTURACION_CLIENTE", "ID_LINEA_CLIENTE", "ID_MOVIMIENTO", "ID_MOVIMIENTO_LEGADO", "ID_SERVICIO", "ID_SERVICIO_CLIENTE", "ID_SERVICIO_CLIENTE_PADRE", "ID_SERVICIO_MOVIMIENTO", "ID_SUSCRIPCION", "NATURALEZA_PAGO", "NOMBRE_PLAN", "NOMBRE_PRODUCTO", "OPERADORA_MOVIMIENTO", "SEDE_INSTALACION", "SISTEMA_LEGADO_ORIGEN", "SUBTIPO_MOVIMIENTO", "SUBTIPO_MOVIMIENTO_HOMOLOGADO", "SUBTIPO_PRODUCTO", "SUSCRIPCION_ACTIVA", "TECNOLOGIA_SERVICIO", "TIPO_MOVIMIENTO", "TIPO_MOVIMIENTO_HOMOLOGADO", "TIPO_PRODUCTO", "VELOCIDAD_ANCHO_BANDA"],
+                "VALUES": ["\""],
+                "THRESHOLD" : "100",
+                    "OUTPUT" : {
+                        "PATH" : "wasbs://rules@adlseu2esdthdev001.blob.core.windows.net/test_error/movimiento/107",
+                        "HEADER" : "TRUE",
+                        "DELIMITER" : "|",
+                        "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+                        "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
+                    }
+            }, 
+            "108": {
+                "FIELDS": ["IMPORTE_MENSUAL_CON_DESCUENTO", "IMPORTE_MENSUAL_SIN_DESCUENTO", "IMPORTE_ULTIMA_RECARGA_PREPAGO"],
+                "DATA_TYPE": "YY.MM",
+                "THRESHOLD" : "100",
+                    "OUTPUT" : {
+                        "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/movimiento/108",
+                        "HEADER" : "TRUE",
+                        "DELIMITER" : "|",
+                        "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+                        "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
+                    }
+            }
         },
         "OUTPUT" : {
             "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/dq/interacciones/atencion_comercial/movimiento/b2b/arg/2022/08/",
