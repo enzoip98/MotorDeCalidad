@@ -130,7 +130,7 @@
                 "VALUES": ["\""],
                 "THRESHOLD" : "100",
                     "OUTPUT" : {
-                        "PATH" : "wasbs://rules@adlseu2esdthdev001.blob.core.windows.net/test_error/cliente/107",
+                        "PATH" : "wasbs://rules@adlseu2esdthdev001.blob.core.windows.net/test_error/equipo/107",
                         "HEADER" : "TRUE",
                         "DELIMITER" : "|",
                         "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",

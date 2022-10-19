@@ -1,7 +1,7 @@
 import json
 from typing import List
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import col, lit, to_date, regexp_replace
+from pyspark.sql.functions import *
 from pyspark.sql.types import StringType, IntegerType
 from motordecalidad.constants import *
 import datetime
@@ -206,6 +206,23 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
                 rulesData.append(data)
                 print("regla de caracteres prohibidos: %s segundos" % (time.time() - t))
 
+        elif code == Rules.DataType.code:
+            print("Inicializando regla de caracteres prohibidos")
+            columnName = rules[code].get(JsonParts.Fields)
+            threshold = rules[code].get(JsonParts.Threshold)
+            data_Type = rules[code].get(JsonParts.DataType) 
+
+            for field in columnName :
+                t = time.time()
+                data, errorDf = validateDataType(object,data_Type,field,registerAmount,entity,threshold)
+                errorDesc = "Tipo de dato error - " + field
+                if data[-One] > Zero:
+                    errorTotal = errorDf.withColumn("error", lit(errorDesc))\
+                    .withColumn("run_time",lit(runTime))
+                    writeDfappend(errorTotal, rules[code].get(JsonParts.Output))
+                rulesData.append(data)
+                print("regla de caracteres prohibidos: %s segundos" % (time.time() - t))
+
         else:
             pass
     validationData:DataFrame = spark.createDataFrame(data = rulesData, schema = OutputDataFrameColumns)
@@ -342,7 +359,6 @@ def chooseComparisonOparator(includeLimitLeft:bool,includeLimitRight:bool,inclus
     return res[0],res[1]
 
 
-
 def validateCatalog(object:DataFrame,
     columnName:StringType, 
     listValues:list,
@@ -357,6 +373,7 @@ def validateCatalog(object:DataFrame,
     ratio = (One - errorCount/registerAmount) * 100
 
     return (registerAmount,Rules.CatalogRule.code,Rules.CatalogRule.name,Rules.CatalogRule.property,Rules.CatalogRule.code + "/" + entity + columnName ,threshold,dataRequirement,columnName, ratio, errorCount), errorDf 
+
 
 def validateForbiddenCharacters(object:DataFrame,
     columnName:StringType, 
@@ -378,3 +395,24 @@ def validateForbiddenCharacters(object:DataFrame,
     ratio = (1 - errorCount/registerAmount) * 100
 
     return (registerAmount, Rules.ForbiddenRule.code,Rules.ForbiddenRule.name,Rules.ForbiddenRule.property,Rules.ForbiddenRule.code + "/" + entity + columnName ,threshold,dataRequirement, columnName, ratio, errorCount), errorDf 
+
+
+def validateNumericType(object:DataFrame,
+    data_Type:StringType,
+    columnName:StringType,
+    registerAmount:IntegerType,
+    entity:StringType,
+    threshold):
+
+    dataRequirement = f"El atributo {entity}.{columnName} debe ser de tipo {data_Type}."
+
+    format
+
+    errorDf = object.filter(lit(object.schema[columnName].dataType != data_Type))
+
+    errorDf = object.withColumn("output", to_date(col(columnName), format))\
+    .filter(col("output").isNull()).drop("output")
+
+    errorCount = errorDf.count()
+    ratio = (One - errorCount/registerAmount) * 100
+    return (registerAmount, Rules.NumericType.code, Rules.NumericType.name + " - " + data_Type, Rules.NumericType.property, Rules.NumericType.code + "/" + entity + "/" + columnName,threshold,dataRequirement,columnName,ratio, errorCount), errorDf
