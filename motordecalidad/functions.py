@@ -206,7 +206,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
                 rulesData.append(data)
                 print("regla de caracteres prohibidos: %s segundos" % (time.time() - t))
 
-        elif code == Rules.DataType.code:
+        elif code == Rules.Type.code:
             print("Inicializando regla de caracteres prohibidos")
             columnName = rules[code].get(JsonParts.Fields)
             threshold = rules[code].get(JsonParts.Threshold)
@@ -214,7 +214,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
 
             for field in columnName :
                 t = time.time()
-                data, errorDf = validateDataType(object,data_Type,field,registerAmount,entity,threshold)
+                data, errorDf = validateType(object,data_Type,field,registerAmount,entity,threshold)
                 errorDesc = "Tipo de dato error - " + field
                 if data[-One] > Zero:
                     errorTotal = errorDf.withColumn("error", lit(errorDesc))\
@@ -397,7 +397,7 @@ def validateForbiddenCharacters(object:DataFrame,
     return (registerAmount, Rules.ForbiddenRule.code,Rules.ForbiddenRule.name,Rules.ForbiddenRule.property,Rules.ForbiddenRule.code + "/" + entity + columnName ,threshold,dataRequirement, columnName, ratio, errorCount), errorDf 
 
 
-def validateNumericType(object:DataFrame,
+def validateType(object:DataFrame,
     data_Type:StringType,
     columnName:StringType,
     registerAmount:IntegerType,
@@ -406,13 +406,10 @@ def validateNumericType(object:DataFrame,
 
     dataRequirement = f"El atributo {entity}.{columnName} debe ser de tipo {data_Type}."
 
-    format
 
-    errorDf = object.filter(lit(object.schema[columnName].dataType != data_Type))
-
-    errorDf = object.withColumn("output", to_date(col(columnName), format))\
+    errorDf = object.filter(col(columnName).isNotNull()).withColumn("output", col(columnName).cast(data_Type))\
     .filter(col("output").isNull()).drop("output")
 
     errorCount = errorDf.count()
     ratio = (One - errorCount/registerAmount) * 100
-    return (registerAmount, Rules.NumericType.code, Rules.NumericType.name + " - " + data_Type, Rules.NumericType.property, Rules.NumericType.code + "/" + entity + "/" + columnName,threshold,dataRequirement,columnName,ratio, errorCount), errorDf
+    return (registerAmount, Rules.Type.code, Rules.Type.name + " - " + data_Type, Rules.Type.property, Rules.Type.code + "/" + entity + "/" + columnName,threshold,dataRequirement,columnName,ratio, errorCount), errorDf

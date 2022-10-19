@@ -29,7 +29,7 @@ class Rules:
         name = "Exactitud"
         property = "Exactitud Sintactica"
         code = "107"
-    class DataType:
+    class Type:
         name = "Exactitud"
         property = "Exactitud Sintactica"
         code = "108"

@@ -165,7 +165,7 @@
             }, 
             "108": {
                 "FIELDS": ["IMPORTE_MENSUAL_CON_DESCUENTO", "IMPORTE_MENSUAL_SIN_DESCUENTO", "IMPORTE_ULTIMA_RECARGA_PREPAGO"],
-                "DATA_TYPE": "YY.MM",
+                "DATA_TYPE": "float",
                 "THRESHOLD" : "100",
                     "OUTPUT" : {
                         "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/movimiento/108",
