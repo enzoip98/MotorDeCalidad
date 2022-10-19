@@ -1,7 +1,7 @@
 import json
 from typing import List
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import *
+from pyspark.sql.functions import col, lit, to_date, regexp_replace
 from pyspark.sql.types import StringType, IntegerType
 from motordecalidad.constants import *
 import datetime
@@ -16,6 +16,7 @@ print("Motor de Calidad Version Beta 1.3")
 def startValidation(inputspark,config):
     global spark
     spark = inputspark
+    print("Inicio de validacion")
     object,output,country,project,entity,domain,subDomain,segment,area,rules = extractParamsFromJson(config)
     registerAmount = object.count()
     validationData = validateRules(object,rules,registerAmount,entity,project,country,domain,subDomain,segment,area)
@@ -45,9 +46,17 @@ def extractParamsFromJson(config):
 
 # Function that reads the CSV file as a Dataframe
 def readDf(input):
-    header = input.get(JsonParts.Header)
+    print("inicio de lectura de informacion")
+    type = input.get(JsonParts.Type)
     spark.conf.set(input.get(JsonParts.Account),input.get(JsonParts.Key))
-    return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(input.get(JsonParts.Path))
+    if type == "csv":
+        header = input.get(JsonParts.Header)
+        return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(input.get(JsonParts.Path))
+    elif type == "parquet":
+        return spark.read.parquet(input.get(JsonParts.Path))
+    else:
+        header = input.get(JsonParts.Header)
+        return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(input.get(JsonParts.Path))
 
 def writeDf(object:DataFrame,output):
 
@@ -220,7 +229,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
         PassedRegistersAmount.value(TestedRegisterAmount.column - FailedRegistersAmount.column),
         SucessRate.column,
         FailedRegistersAmount.column,
-        FailRate.value(lit(One)-SucessRate.column)
+        FailRate.value(lit(OneHundred)-SucessRate.column)
         )
 
 #Function that valides the amount of Null registers for certain columns of the dataframe
@@ -229,7 +238,7 @@ def validateNull(object:DataFrame,field: StringType,registersAmount: IntegerType
     errorDf = object.filter(col(field).isNull())
     nullCount = object.select(field).filter(col(field).isNull()).count()
     notNullCount = registersAmount - nullCount
-    ratio = notNullCount/ registersAmount
+    ratio = (notNullCount/ registersAmount) * 100
     return (registersAmount,Rules.NullRule.code,Rules.NullRule.name,Rules.NullRule.property,Rules.NullRule.code + "/" + entity + "/" + field,threshold,dataRequirement,field,ratio,nullCount), errorDf
 
 #Function that valides the amount of Duplicated registers for certain columns of the dataframe
@@ -240,7 +249,7 @@ def validateDuplicates(object:DataFrame,fields:List,registersAmount: IntegerType
     errorDf = object.join(duplicates.select(fields), fields, 'inner')
     nonUniqueRegistersAmount = errorDf.count()
     uniqueRegistersAmount = registersAmount - nonUniqueRegistersAmount
-    ratio = uniqueRegistersAmount / registersAmount
+    ratio = (uniqueRegistersAmount / registersAmount) * 100
 
     return (registersAmount,Rules.DuplicatedRule.code,Rules.DuplicatedRule.name,Rules.DuplicatedRule.property,Rules.DuplicatedRule.code + "/" + entity + "/" + fieldString,threshold,dataRequirement,fieldString,ratio,nonUniqueRegistersAmount), errorDf
 
@@ -302,7 +311,7 @@ def validateRange(object:DataFrame,
         errorDf = object.filter(opel(col(columnName),minRange) & opeg(col(columnName),maxRange))
 
     errorCount = errorDf.count()
-    ratio = 1 - errorCount/registerAmount
+    ratio = (1 - errorCount/registerAmount) * 100
 
     return (registerAmount,Rules.RangeRule.code,Rules.RangeRule.name,Rules.RangeRule.property,Rules.RangeRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement, columnName, ratio, errorCount), errorDf
 
@@ -333,6 +342,7 @@ def chooseComparisonOparator(includeLimitLeft:bool,includeLimitRight:bool,inclus
     return res[0],res[1]
 
 
+
 def validateCatalog(object:DataFrame,
     columnName:StringType, 
     listValues:list,
@@ -344,10 +354,9 @@ def validateCatalog(object:DataFrame,
     errorDf = object.filter(~col(columnName).isin(listValues))
 
     errorCount = errorDf.count()
-    ratio = One - errorCount/registerAmount
+    ratio = (One - errorCount/registerAmount) * 100
 
     return (registerAmount,Rules.CatalogRule.code,Rules.CatalogRule.name,Rules.CatalogRule.property,Rules.CatalogRule.code + "/" + entity + columnName ,threshold,dataRequirement,columnName, ratio, errorCount), errorDf 
-
 
 def validateForbiddenCharacters(object:DataFrame,
     columnName:StringType, 
@@ -366,7 +375,6 @@ def validateForbiddenCharacters(object:DataFrame,
     errorDf=object.filter(col(columnName)!=col('replaced')).drop('replaced')
 
     errorCount = errorDf.count()
-    ratio = 1 - errorCount/registerAmount
+    ratio = (1 - errorCount/registerAmount) * 100
 
     return (registerAmount, Rules.ForbiddenRule.code,Rules.ForbiddenRule.name,Rules.ForbiddenRule.property,Rules.ForbiddenRule.code + "/" + entity + columnName ,threshold,dataRequirement, columnName, ratio, errorCount), errorDf 
-

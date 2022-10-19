@@ -52,6 +52,7 @@ class JsonParts:
     Values = "VALUES"
     MinRange = "MIN_RANGE"
     MaxRange = "MAX_RANGE"
+    Type = "TYPE"
 
 
 LeftAntiType = "leftanti"
