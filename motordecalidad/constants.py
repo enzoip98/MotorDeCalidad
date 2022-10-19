@@ -29,6 +29,11 @@ class Rules:
         name = "Exactitud"
         property = "Exactitud Sintactica"
         code = "107"
+    class Type:
+        name = "Exactitud"
+        property = "Exactitud Sintactica"
+        code = "108"
+
 
 class JsonParts:
     Input = "INPUT"
@@ -52,6 +57,7 @@ class JsonParts:
     Values = "VALUES"
     MinRange = "MIN_RANGE"
     MaxRange = "MAX_RANGE"
+    DataType = "DATA_TYPE"
     Type = "TYPE"
 
 
