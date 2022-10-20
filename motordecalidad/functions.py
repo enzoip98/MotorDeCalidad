@@ -298,7 +298,7 @@ def validateFormatDate(object:DataFrame,
     threshold):
     dataRequirement = f"El atributo {entity}.{columnName} debe tener el formato {formatDate}."
     spark.sql("set spark.sql.legacy.timeParserPolicy=LEGACY")
-    errorDf = object.withColumn("output", to_date(col(columnName), formatDate))\
+    errorDf = object.withColumn("output", to_date(col(columnName).cast('string'), formatDate))\
     .filter(col("output").isNull()).drop("output")
     errorCount = errorDf.count()
     ratio = (One - errorCount/registerAmount) * 100
