@@ -8,7 +8,7 @@ import datetime
 import time
 import operator
 
-print("Motor de Calidad Version Beta 1.3")
+print("Motor de Calidad Version Beta 1.3.2")
 
 # Main function
 # @spark Variable containing spark session
@@ -17,9 +17,9 @@ def startValidation(inputspark,config):
     global spark
     spark = inputspark
     print("Inicio de validacion")
-    object,output,country,project,entity,domain,subDomain,segment,area,rules = extractParamsFromJson(config)
+    object,output,country,project,entity,domain,subDomain,segment,area,rules,error = extractParamsFromJson(config)
     registerAmount = object.count()
-    validationData = validateRules(object,rules,registerAmount,entity,project,country,domain,subDomain,segment,area)
+    validationData = validateRules(object,rules,registerAmount,entity,project,country,domain,subDomain,segment,area,error)
     writeDf(validationData, output)
     return validationData
 
@@ -38,11 +38,12 @@ def extractParamsFromJson(config):
     subDomain: StringType = input.get(JsonParts.SubDomain)
     segment: StringType = input.get(JsonParts.Segment)
     area: StringType = input.get(JsonParts.Area)
+    error = data.get(JsonParts.Error)
 
     entityDf = readDf(input)
     rules = data.get(JsonParts.Rules)
     print("Extraccion de JSON completada")
-    return entityDf,output,country,project,entity,domain,subDomain,segment,area,rules
+    return entityDf,output,country,project,entity,domain,subDomain,segment,area,rules,error
 
 # Function that reads the CSV file as a Dataframe
 def readDf(input):
@@ -59,26 +60,23 @@ def readDf(input):
         return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(input.get(JsonParts.Path))
 
 def writeDf(object:DataFrame,output):
+    header:StringType = output.get(JsonParts.Header)
+    spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
+    object.coalesce(One).write.mode("overwrite").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path)))
+    print("Se escribio en el blob")
 
-    if output != None :
+def writeDfappend(object:DataFrame,output,RuleId,Write):
+    
+    if Write == False :
+        print("Se omitio escritura")
+    else:
         header:StringType = output.get(JsonParts.Header)
         spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
-        object.coalesce(One).write.mode("overwrite").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path)))
+        object.coalesce(One).write.mode("append").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path))+ RuleId)
         print("Se escribio en el blob")
-    else:
-        print("Se omitio escritura")
-
-def writeDfappend(object:DataFrame,output):
-    if output != None :
-        header:StringType = output.get(JsonParts.Header)
-        spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
-        object.coalesce(One).write.mode("append").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path)))
-        print("Se escribio en el blob")
-    else:
-        print("Se omitio escritura")
 
 #Function that validate rules going through the defined options
-def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity: StringType, project:StringType,country,domain,subDomain,segment,area):
+def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity: StringType, project:StringType,country,domain,subDomain,segment,area,error):
     runTime = datetime.datetime.now()
 
     rulesData:List = []
@@ -95,7 +93,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
                 if data[-One] > Zero :
                     errorTotal = errorDf.withColumn("error", lit(errorDesc))\
                     .withColumn("run_time", lit(runTime))
-                    writeDfappend(errorTotal, rules[code].get(JsonParts.Output))
+                    writeDfappend(errorTotal, error, code,rules[code].get(JsonParts.Write))
                 rulesData.append(data)
                 print("regla de nulos: %s segundos" % (time.time() - t))
 
@@ -109,7 +107,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
             if data[-1] > 0 :
                 errorTotal = errorDf.withColumn("error", lit(errorDesc))\
                 .withColumn("run_time", lit(runTime))
-                writeDfappend(errorTotal, rules[code].get(JsonParts.Output))
+                writeDfappend(errorTotal,error, code,rules[code].get(JsonParts.Write))
             rulesData.append(data)
             print("regla de duplicados: %s segundos" % (time.time() - t))
 
@@ -128,7 +126,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
             if data[-One] > Zero :
                 errorTotal = errorDf.withColumn("error", lit(errorDesc))\
                 .withColumn("run_time", lit(runTime))
-                writeDfappend(errorTotal, rules[code].get(JsonParts.Output))
+                writeDfappend(errorTotal,error, code,rules[code].get(JsonParts.Write))
             
             rulesData.append(data) 
             print("regla de IR: %s segundos" % (time.time() - t))
@@ -146,7 +144,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
                     if data[-One] > Zero :
                         errorTotal = errorDf.withColumn("error", lit(errorDesc))\
                         .withColumn("run_time", lit(runTime))
-                        writeDfappend(errorTotal, rules[code].get(JsonParts.Output))
+                        writeDfappend(errorTotal, error, code,rules[code].get(JsonParts.Write))
                     rulesData.append(data) 
                     print("regla de formato: %s segundos" % (time.time() - t))
                 else:
@@ -167,7 +165,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
                 if data[-One] > Zero:
                     errorTotal = errorDf.withColumn("error", lit(errorDesc))\
                     .withColumn("run_time",lit(runTime))
-                    writeDfappend(errorTotal, rules[code].get(JsonParts.Output))
+                    writeDfappend(errorTotal, error, code,rules[code].get(JsonParts.Write))
                 rulesData.append(data)
                 print("regla de catalogo: %s segundos" % (time.time() - t))
         
@@ -185,7 +183,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
                 if data[-One] > Zero:
                     errorTotal = errorDf.withColumn("error", lit(errorDesc))\
                     .withColumn("run_time",lit(runTime))
-                    writeDfappend(errorTotal, rules[code].get(JsonParts.Output))
+                    writeDfappend(errorTotal, error, code,rules[code].get(JsonParts.Write))
                 rulesData.append(data)
                 print("regla de rango: %s segundos" % (time.time() - t))
         
@@ -202,7 +200,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
                 if data[-One] > Zero:
                     errorTotal = errorDf.withColumn("error", lit(errorDesc))\
                     .withColumn("run_time",lit(runTime))
-                    writeDfappend(errorTotal, rules[code].get(JsonParts.Output))
+                    writeDfappend(errorTotal, error, code,rules[code].get(JsonParts.Write))
                 rulesData.append(data)
                 print("regla de caracteres prohibidos: %s segundos" % (time.time() - t))
 
@@ -219,7 +217,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
                 if data[-One] > Zero:
                     errorTotal = errorDf.withColumn("error", lit(errorDesc))\
                     .withColumn("run_time",lit(runTime))
-                    writeDfappend(errorTotal, rules[code].get(JsonParts.Output))
+                    writeDfappend(errorTotal, error, code,rules[code].get(JsonParts.Write))
                 rulesData.append(data)
                 print("regla de caracteres prohibidos: %s segundos" % (time.time() - t))
 
@@ -255,7 +253,7 @@ def validateNull(object:DataFrame,field: StringType,registersAmount: IntegerType
     errorDf = object.filter(col(field).isNull())
     nullCount = object.select(field).filter(col(field).isNull()).count()
     notNullCount = registersAmount - nullCount
-    ratio = (notNullCount/ registersAmount) * 100
+    ratio = (notNullCount/ registersAmount) * OneHundred
     return (registersAmount,Rules.NullRule.code,Rules.NullRule.name,Rules.NullRule.property,Rules.NullRule.code + "/" + entity + "/" + field,threshold,dataRequirement,field,ratio,nullCount), errorDf
 
 #Function that valides the amount of Duplicated registers for certain columns of the dataframe
@@ -266,7 +264,7 @@ def validateDuplicates(object:DataFrame,fields:List,registersAmount: IntegerType
     errorDf = object.join(duplicates.select(fields), fields, 'inner')
     nonUniqueRegistersAmount = errorDf.count()
     uniqueRegistersAmount = registersAmount - nonUniqueRegistersAmount
-    ratio = (uniqueRegistersAmount / registersAmount) * 100
+    ratio = (uniqueRegistersAmount / registersAmount) * OneHundred
 
     return (registersAmount,Rules.DuplicatedRule.code,Rules.DuplicatedRule.name,Rules.DuplicatedRule.property,Rules.DuplicatedRule.code + "/" + entity + "/" + fieldString,threshold,dataRequirement,fieldString,ratio,nonUniqueRegistersAmount), errorDf
 
@@ -286,7 +284,7 @@ def validateReferentialIntegrity(
     referenceDataFrame = readDf(referalData)
     errorDf = testDataFrame.select(testColumn).join(referenceDataFrame.select(referenceColumn).toDF(*testColumn), on = testColumn, how = LeftAntiType)
     errorCount = errorDf.count()
-    ratio = (One - errorCount/registersAmount) * 100
+    ratio = (One - errorCount/registersAmount) * OneHundred
     return (registersAmount,Rules.IntegrityRule.code,Rules.IntegrityRule.name,Rules.IntegrityRule.property,Rules.IntegrityRule.code + "/" + entity + "/" + fieldString,threshold,dataRequirement,fieldString,ratio, errorCount), errorDf
 
 
@@ -294,14 +292,14 @@ def validateFormatDate(object:DataFrame,
     formatDate:StringType,
     columnName:StringType,
     registerAmount:IntegerType,
-    entity:StringType,
+    entity:StringType,  
     threshold):
     dataRequirement = f"El atributo {entity}.{columnName} debe tener el formato {formatDate}."
     spark.sql("set spark.sql.legacy.timeParserPolicy=LEGACY")
-    errorDf = object.withColumn("output", to_date(col(columnName), formatDate))\
+    errorDf = object.withColumn("output", to_date(col(columnName).cast('string'), formatDate))\
     .filter(col("output").isNull()).drop("output")
     errorCount = errorDf.count()
-    ratio = (One - errorCount/registerAmount) * 100
+    ratio = (One - errorCount/registerAmount) * OneHundred
     return (registerAmount,Rules.FormatDate.code,Rules.FormatDate.name + " - " + formatDate,Rules.FormatDate.property,Rules.FormatDate.code + "/" + entity + "/" + columnName,threshold,dataRequirement,columnName,ratio, errorCount), errorDf
 
 def validateRange(object:DataFrame,
@@ -328,7 +326,7 @@ def validateRange(object:DataFrame,
         errorDf = object.filter(opel(col(columnName),minRange) & opeg(col(columnName),maxRange))
 
     errorCount = errorDf.count()
-    ratio = (1 - errorCount/registerAmount) * 100
+    ratio = (1 - errorCount/registerAmount) * OneHundred
 
     return (registerAmount,Rules.RangeRule.code,Rules.RangeRule.name,Rules.RangeRule.property,Rules.RangeRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement, columnName, ratio, errorCount), errorDf
 
@@ -370,7 +368,7 @@ def validateCatalog(object:DataFrame,
     errorDf = object.filter(~col(columnName).isin(listValues))
 
     errorCount = errorDf.count()
-    ratio = (One - errorCount/registerAmount) * 100
+    ratio = (One - errorCount/registerAmount) * OneHundred
 
     return (registerAmount,Rules.CatalogRule.code,Rules.CatalogRule.name,Rules.CatalogRule.property,Rules.CatalogRule.code + "/" + entity + columnName ,threshold,dataRequirement,columnName, ratio, errorCount), errorDf 
 
@@ -392,7 +390,7 @@ def validateForbiddenCharacters(object:DataFrame,
     errorDf=object.filter(col(columnName)!=col('replaced')).drop('replaced')
 
     errorCount = errorDf.count()
-    ratio = (1 - errorCount/registerAmount) * 100
+    ratio = (1 - errorCount/registerAmount) * OneHundred
 
     return (registerAmount, Rules.ForbiddenRule.code,Rules.ForbiddenRule.name,Rules.ForbiddenRule.property,Rules.ForbiddenRule.code + "/" + entity + columnName ,threshold,dataRequirement, columnName, ratio, errorCount), errorDf 
 
@@ -411,5 +409,5 @@ def validateType(object:DataFrame,
     .filter(col("output").isNull()).drop("output")
 
     errorCount = errorDf.count()
-    ratio = (One - errorCount/registerAmount) * 100
+    ratio = (One - errorCount/registerAmount) * OneHundred
     return (registerAmount, Rules.Type.code, Rules.Type.name + " - " + data_Type, Rules.Type.property, Rules.Type.code + "/" + entity + "/" + columnName,threshold,dataRequirement,columnName,ratio, errorCount), errorDf

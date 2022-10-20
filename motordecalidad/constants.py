@@ -59,6 +59,8 @@ class JsonParts:
     MaxRange = "MAX_RANGE"
     DataType = "DATA_TYPE"
     Type = "TYPE"
+    Write = "WRITE"
+    Error = "ERROR"
 
 
 LeftAntiType = "leftanti"
