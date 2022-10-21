@@ -81,7 +81,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
 
     rulesData:List = []
     for code in rules:
-        if code == Rules.NullRule.code:
+        if code[0:3] == Rules.NullRule.code:
             print("Inicializando reglas de Nulos")
             data:List = []
             columns = rules[code].get(JsonParts.Fields)
@@ -97,7 +97,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
                 rulesData.append(data)
                 print("regla de nulos: %s segundos" % (time.time() - t))
 
-        elif code == Rules.DuplicatedRule.code:
+        elif code[0:3] == Rules.DuplicatedRule.code:
             print("Inicializando reglas de Duplicidad")
             t = time.time()
             testColumn = rules[code].get(JsonParts.Fields)
@@ -187,7 +187,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
                 rulesData.append(data)
                 print("regla de rango: %s segundos" % (time.time() - t))
         
-        elif code == Rules.ForbiddenRule.code:
+        elif code[0:3] == Rules.ForbiddenRule.code:
             print("Inicializando regla de caracteres prohibidos")
             columnName = rules[code].get(JsonParts.Fields)
             threshold = rules[code].get(JsonParts.Threshold)
@@ -204,8 +204,8 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
                 rulesData.append(data)
                 print("regla de caracteres prohibidos: %s segundos" % (time.time() - t))
 
-        elif code == Rules.Type.code:
-            print("Inicializando regla de caracteres prohibidos")
+        elif code[0:3] == Rules.Type.code:
+            print("Inicializando regla de tipo de dato")
             columnName = rules[code].get(JsonParts.Fields)
             threshold = rules[code].get(JsonParts.Threshold)
             data_Type = rules[code].get(JsonParts.DataType) 
