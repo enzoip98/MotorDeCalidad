@@ -33,6 +33,10 @@ class Rules:
         name = "Exactitud"
         property = "Exactitud Sintactica"
         code = "108"
+    class Composision:
+        name = "Consistencia"
+        property = "Consistencia de Formato"
+        code = "109"
 
 
 class JsonParts:
@@ -59,6 +63,8 @@ class JsonParts:
     MaxRange = "MAX_RANGE"
     DataType = "DATA_TYPE"
     Type = "TYPE"
+    Write = "WRITE"
+    Error = "ERROR"
 
 
 LeftAntiType = "leftanti"

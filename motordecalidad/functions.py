@@ -8,7 +8,7 @@ import datetime
 import time
 import operator
 
-print("Motor de Calidad Version Beta 1.3.2")
+print("Motor de Calidad Version Beta 1.4")
 
 # Main function
 # @spark Variable containing spark session
@@ -81,7 +81,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
 
     rulesData:List = []
     for code in rules:
-        if code == Rules.NullRule.code:
+        if code[0:3] == Rules.NullRule.code:
             print("Inicializando reglas de Nulos")
             data:List = []
             columns = rules[code].get(JsonParts.Fields)
@@ -97,7 +97,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
                 rulesData.append(data)
                 print("regla de nulos: %s segundos" % (time.time() - t))
 
-        elif code == Rules.DuplicatedRule.code:
+        elif code[0:3] == Rules.DuplicatedRule.code:
             print("Inicializando reglas de Duplicidad")
             t = time.time()
             testColumn = rules[code].get(JsonParts.Fields)
@@ -187,7 +187,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
                 rulesData.append(data)
                 print("regla de rango: %s segundos" % (time.time() - t))
         
-        elif code == Rules.ForbiddenRule.code:
+        elif code[0:3] == Rules.ForbiddenRule.code:
             print("Inicializando regla de caracteres prohibidos")
             columnName = rules[code].get(JsonParts.Fields)
             threshold = rules[code].get(JsonParts.Threshold)
@@ -204,8 +204,8 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
                 rulesData.append(data)
                 print("regla de caracteres prohibidos: %s segundos" % (time.time() - t))
 
-        elif code == Rules.Type.code:
-            print("Inicializando regla de caracteres prohibidos")
+        elif code[0:3] == Rules.Type.code:
+            print("Inicializando regla de tipo de dato")
             columnName = rules[code].get(JsonParts.Fields)
             threshold = rules[code].get(JsonParts.Threshold)
             data_Type = rules[code].get(JsonParts.DataType) 
@@ -219,8 +219,22 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
                     .withColumn("run_time",lit(runTime))
                     writeDfappend(errorTotal, error, code,rules[code].get(JsonParts.Write))
                 rulesData.append(data)
-                print("regla de caracteres prohibidos: %s segundos" % (time.time() - t))
-
+                print("regla de caracteres tipo de dato: %s segundos" % (time.time() - t))
+        elif code[0:3] == Rules.Composision.code:
+            print("Inicializando regla de composicion")
+            columnName = rules[code].get(JsonParts.Fields)
+            threshold = rules[code].get(JsonParts.Threshold)
+            patialColumns = rules[code].get(JsonParts.Values)
+            for field in columnName:
+                t = time.time()
+                data, errorDf = validateComposision(object,field,patialColumns,registerAmount,entity,threshold)
+                errorDesc = "Composicion error - " + field
+                if data[-One] > Zero:
+                    errorTotal = errorDf.withColumn("error", lit(errorDesc))\
+                    .withColumn("run_time",lit(runTime))
+                    writeDfappend(errorTotal, error, code,rules[code].get(JsonParts.Write))
+                rulesData.append(data)
+                print("regla de caracteres composicion: %s segundos" % (time.time() - t))
         else:
             pass
     validationData:DataFrame = spark.createDataFrame(data = rulesData, schema = OutputDataFrameColumns)
@@ -370,7 +384,7 @@ def validateCatalog(object:DataFrame,
     errorCount = errorDf.count()
     ratio = (One - errorCount/registerAmount) * OneHundred
 
-    return (registerAmount,Rules.CatalogRule.code,Rules.CatalogRule.name,Rules.CatalogRule.property,Rules.CatalogRule.code + "/" + entity + columnName ,threshold,dataRequirement,columnName, ratio, errorCount), errorDf 
+    return (registerAmount,Rules.CatalogRule.code,Rules.CatalogRule.name,Rules.CatalogRule.property,Rules.CatalogRule.code + "/" + entity + "/" + columnName ,threshold,dataRequirement,columnName, ratio, errorCount), errorDf 
 
 
 def validateForbiddenCharacters(object:DataFrame,
@@ -392,7 +406,7 @@ def validateForbiddenCharacters(object:DataFrame,
     errorCount = errorDf.count()
     ratio = (1 - errorCount/registerAmount) * OneHundred
 
-    return (registerAmount, Rules.ForbiddenRule.code,Rules.ForbiddenRule.name,Rules.ForbiddenRule.property,Rules.ForbiddenRule.code + "/" + entity + columnName ,threshold,dataRequirement, columnName, ratio, errorCount), errorDf 
+    return (registerAmount, Rules.ForbiddenRule.code,Rules.ForbiddenRule.name,Rules.ForbiddenRule.property,Rules.ForbiddenRule.code + "/" + entity + "/" + columnName ,threshold,dataRequirement, columnName, ratio, errorCount), errorDf 
 
 
 def validateType(object:DataFrame,
@@ -411,3 +425,18 @@ def validateType(object:DataFrame,
     errorCount = errorDf.count()
     ratio = (One - errorCount/registerAmount) * OneHundred
     return (registerAmount, Rules.Type.code, Rules.Type.name + " - " + data_Type, Rules.Type.property, Rules.Type.code + "/" + entity + "/" + columnName,threshold,dataRequirement,columnName,ratio, errorCount), errorDf
+
+def validateComposision(object: DataFrame,
+    columnName:StringType,
+    partialColumns:list,
+    registerAmount:IntegerType,
+    entity: StringType,
+    threshold: StringType):
+
+    fieldsString = ','.join(partialColumns)
+    dataRequirement = f"El atributo {entity}.{columnName} en todas las tablas tiene que tener la siguiente estructura {fieldsString}"
+    errorDf = object.filter(col(columnName) != concat_ws("_",*partialColumns))
+    errorCount = errorDf.count()
+    ratio = (One - errorCount/registerAmount) * OneHundred
+
+    return (registerAmount, Rules.Composision.code, Rules.Composision.name, Rules.Composision.property, Rules.Composision.code + "/" + entity + "/" + columnName,threshold,dataRequirement,columnName,ratio, errorCount), errorDf

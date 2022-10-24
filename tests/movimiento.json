@@ -13,28 +13,23 @@
 		"ACCOUNT" :"fs.azure.account.key.adlseuedltb2b002.dfs.core.windows.net",
 		"KEY" : "gLVky28N5XlvBnJEVZnLLxY1ZKCuUIzPta4kC04CDP2uek1UxLd0YQ11UDB1dNUswQgzA1Gjq6Z8+AStiSd7SQ=="
     },
+    "ERROR" : {
+        "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/movimiento/",
+        "HEADER" : "TRUE",
+        "DELIMITER" : "|",
+        "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+        "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
+    },
     "RULES":{
         "101":{
             "FIELDS": ["CANAL_MOVIMIENTO","CANAL_MOVIMIENTO_HOMOLOGADO","CODIGO_DIVISA","CODIGO_PLAN","ESTADO_SUSCRIPCION","FECHA_MOVIMIENTO", "FECHA_ULTIMA_EXTRACCION_LEGADO", "ID_CLIENTE", "ID_FACTURACION", "ID_FACTURACION_CLIENTE", "ID_MOVIMIENTO", "ID_MOVIMIENTO_LEGADO", "ID_SERVICIO", "ID_SERVICIO_MOVIMIENTO", "ID_SUSCRIPCION", "ID_SUSCRIPCION_CLIENTE", "NATURALEZA_PAGO", "NOMBRE_PLAN", "NOMBRE_PRODUCTO", "SISTEMA_LEGADO_ORIGEN", "SUSCRIPCION_ACTIVA", "TIPO_MOVIMIENTO", "TIPO_MOVIMIENTO_HOMOLOGADO", "TIPO_PRODUCTO"],
             "THRESHOLD" : "100",
-			"OUTPUT" : {
-                "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/movimiento/101",
-                "HEADER" : "TRUE",
-                "DELIMITER" : "|",
-                "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
-                "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
-            }
+            "WRITE" : "TRUE"
         }, 
         "102" : {
             "FIELDS": ["ID_MOVIMIENTO"],
 			"THRESHOLD" : "100",
-                "OUTPUT" : {
-                    "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/movimiento/102",
-                    "HEADER" : "TRUE",
-                    "DELIMITER" : "|",
-                    "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
-                    "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
-                }
+            "WRITE" : "TRUE"
         },
             "103.1":{
                 "FIELDS": ["ID_CLIENTE"],
@@ -47,13 +42,7 @@
 					"ACCOUNT" :"fs.azure.account.key.adlseuedltb2b002.dfs.core.windows.net",
 					"KEY" : "gLVky28N5XlvBnJEVZnLLxY1ZKCuUIzPta4kC04CDP2uek1UxLd0YQ11UDB1dNUswQgzA1Gjq6Z8+AStiSd7SQ=="
                 },
-                "OUTPUT": {
-                    "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/movimiento/103_1",
-                    "HEADER" : "TRUE",
-                    "DELIMITER" : "|",
-                    "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
-                    "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
-                }
+                "WRITE" : "TRUE"
             },
             
             "103.2":{
@@ -63,17 +52,11 @@
                     "PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/finanzas/facturacion/cuenta_facturacion/b2b/arg/2022/08/",
                     "HEADER" : "TRUE",
                     "DELIMITER" : "|",
-                    "FIELDS" : ["ID_FACTURACION_CLIENTE", "ID_FACTURACION"],
+                    "FIELDS" : ["ID_FACTURACION", "ID_FACTURACION_CLIENTE"],
                     "ACCOUNT" :"fs.azure.account.key.adlseuedltb2b002.dfs.core.windows.net",
 					"KEY" : "gLVky28N5XlvBnJEVZnLLxY1ZKCuUIzPta4kC04CDP2uek1UxLd0YQ11UDB1dNUswQgzA1Gjq6Z8+AStiSd7SQ=="
                 },
-                "OUTPUT": {
-                    "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/movimiento/103_2",
-                    "HEADER" : "TRUE",
-                    "DELIMITER" : "|",
-                    "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
-                    "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
-                }
+                "WRITE" : "TRUE"
             },
 
             "103.3":{
@@ -87,13 +70,7 @@
                     "ACCOUNT" :"fs.azure.account.key.adlseuedltb2b002.dfs.core.windows.net",
 					"KEY" : "gLVky28N5XlvBnJEVZnLLxY1ZKCuUIzPta4kC04CDP2uek1UxLd0YQ11UDB1dNUswQgzA1Gjq6Z8+AStiSd7SQ=="
                 },
-                "OUTPUT": {
-                    "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/movimiento/103_3",
-                    "HEADER" : "TRUE",
-                    "DELIMITER" : "|",
-                    "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
-                    "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
-                }
+                "WRITE" : "TRUE"
             },
 
             "103.4":{
@@ -107,73 +84,131 @@
                     "ACCOUNT" :"fs.azure.account.key.adlseuedltb2b002.dfs.core.windows.net",
 					"KEY" : "gLVky28N5XlvBnJEVZnLLxY1ZKCuUIzPta4kC04CDP2uek1UxLd0YQ11UDB1dNUswQgzA1Gjq6Z8+AStiSd7SQ=="
                 },
-                "OUTPUT": {
-                    "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/movimiento/103_4",
-                    "HEADER" : "TRUE",
-                    "DELIMITER" : "|",
-                    "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
-                    "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
-                }
+                "WRITE" : "TRUE"
             },
             "104": {
                 "FIELDS": ["FECHA_FIN_CONTRATO_SERVICIO", "FECHA_FIN_PERMANENCIA_SERVICIO", "FECHA_FIN_PROMOCION_SERVICIO", "FECHA_MOVIMIENTO", "FECHA_ULTIMA_EXTRACCION_LEGADO"],
                 "FORMAT_DATE": "yyyy-MM-dd",
 				"THRESHOLD" : "100",
-                    "OUTPUT" : {
-                        "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/movimiento/104",
-                        "HEADER" : "TRUE",
-                        "DELIMITER" : "|",
-                        "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
-                        "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
-                    }
+                "WRITE" : "TRUE"
             },
-			"105.1": {
-				"FIELDS": ["IMPORTE_MENSUAL_CON_DESCUENTO"],
+			"106.1": {
+				"FIELDS": ["CANAL_MOVIMIENTO"],
 				"THRESHOLD" : "100",
-				"MIN_RANGE": "0",
-                    "OUTPUT" : {
-                        "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/movimiento/105_1",
-                        "HEADER" : "TRUE",
-                        "DELIMITER" : "|",
-                        "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
-                        "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
-                    }
+				"VALUES": ["Agentes","Agentes Tasa","Alianza","Cec","Cecom","Cross","Descripción no Disponible","E-Commerce","Fv","Mixtos","No Aplica","No Identificado","No Informado","Reclamo","Retail","Retención","Televentas","Tuenti"],
+                "WRITE" : "TRUE"
 			},
-			"105.2": {
-				"FIELDS": ["IMPORTE_MENSUAL_SIN_DESCUENTO"],
+			"106.2": {
+				"FIELDS": ["CANAL_MOVIMIENTO_HOMOLOGADO"],
 				"THRESHOLD" : "100",
-				"MIN_RANGE": "0",
-                    "OUTPUT" : {
-                        "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/movimiento/105_2",
-                        "HEADER" : "TRUE",
-                        "DELIMITER" : "|",
-                        "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
-                        "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
-                    }
+                "VALUES" : ["Tiendas o Puntos de Venta de Terceros B2C",
+                "Tiendas o Puntos de Venta de Terceros B2C",
+                "",
+                "Tiendas Propias B2C",
+                "Tiendas Propias B2C",
+                "Televentas CROSS Comercial",
+                "Canal WEB / Online",
+                "FVI Terciarizada - Todos los canales",
+                "Televentas IN",
+                "Tiendas Propias B2C",
+                "Televentas OUT",
+                "Televentas OUT",
+                "Canal WEB / Online"
+                ],
+                "WRITE" : "TRUE"
 			}, 
+            "106.3": {
+				"FIELDS": ["NATURALEZA_PAGO"],
+				"THRESHOLD" : "100",
+                "VALUES" : ["Prepago",
+                "Pospago",
+                "Hibrido"
+                ],
+                "WRITE" : "TRUE"
+			}, 
+            "106.4": {
+				"FIELDS": ["SUBTIPO_PRODUCTO"],
+				"THRESHOLD" : "100",
+                "VALUES" : ["BOLSA",
+                "CLEARING",
+                "CONTROL",
+                "FULL",
+                "PREPAGO",
+                "OTROS",
+                "KITE GLOBAL",
+                "KITE LOCAL",
+                "LEGACY",
+                "ENLACES PRIMARIOS",
+                "VOZ FIJO",
+                "ACCESO DEDICADO",
+                "CABLE",
+                "FIBRA",
+                "FWA Y RESTO",
+                "INALAMBRICA",
+                "SATELITAL",
+                "XDSL"
+             ],
+                "WRITE" : "TRUE"
+			},
+            "106.5": {
+				"FIELDS": ["TIPO_MOVIMIENTO"],
+				"THRESHOLD" : "100",
+                "VALUES" : [
+                "Proporcionar",
+                "Dar de baja",
+                "Cambiar",
+                "Cambiar Cobranza",
+                "Proveer suscripción SMB",
+                "Alta",
+                "Baja",
+                "Modificacion",
+                "PortIn",
+                "PortOut"
+             ],
+                "WRITE" : "TRUE"
+			},
+            "106.6": {
+				"FIELDS": ["SUBTIPO_PRODUCTO"],
+				"THRESHOLD" : "100",
+                "VALUES" : [
+                    "MOVIL VOZ",
+                    "BAM",
+                    "M2M",
+                    "SVA",
+                    "STB",
+                    "BAF",
+                    "TV",
+                    "OTROS"
+             ],
+                "WRITE" : "TRUE"
+			},
+            "106.7": {
+				"FIELDS": ["TIPO_MOVIMIENTO_HOMOLOGADO"],
+				"THRESHOLD" : "100",
+                "VALUES" : [
+                    "Alta",
+                    "Baja",
+                    "Modificacion"
+             ],
+                "WRITE" : "TRUE"
+			},
             "107" : {
                 "FIELDS": ["CANAL_MOVIMIENTO", "CANAL_MOVIMIENTO_HOMOLOGADO", "CODIGO_DIVISA", "CODIGO_PLAN", "ESTADO_SERVICIO", "ESTADO_SUSCRIPCION", "ID_AGENTE_MOVIMIENTO", "ID_CLIENTE", "ID_FACTURACION", "ID_FACTURACION_CLIENTE", "ID_LINEA_CLIENTE", "ID_MOVIMIENTO", "ID_MOVIMIENTO_LEGADO", "ID_SERVICIO", "ID_SERVICIO_CLIENTE", "ID_SERVICIO_CLIENTE_PADRE", "ID_SERVICIO_MOVIMIENTO", "ID_SUSCRIPCION", "NATURALEZA_PAGO", "NOMBRE_PLAN", "NOMBRE_PRODUCTO", "OPERADORA_MOVIMIENTO", "SEDE_INSTALACION", "SISTEMA_LEGADO_ORIGEN", "SUBTIPO_MOVIMIENTO", "SUBTIPO_MOVIMIENTO_HOMOLOGADO", "SUBTIPO_PRODUCTO", "SUSCRIPCION_ACTIVA", "TECNOLOGIA_SERVICIO", "TIPO_MOVIMIENTO", "TIPO_MOVIMIENTO_HOMOLOGADO", "TIPO_PRODUCTO", "VELOCIDAD_ANCHO_BANDA"],
                 "VALUES": ["\""],
                 "THRESHOLD" : "100",
-                    "OUTPUT" : {
-                        "PATH" : "wasbs://rules@adlseu2esdthdev001.blob.core.windows.net/test_error/movimiento/107",
-                        "HEADER" : "TRUE",
-                        "DELIMITER" : "|",
-                        "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
-                        "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
-                    }
+                "WRITE" : "TRUE"
             }, 
-            "108": {
+            "108.1": {
                 "FIELDS": ["IMPORTE_MENSUAL_CON_DESCUENTO", "IMPORTE_MENSUAL_SIN_DESCUENTO", "IMPORTE_ULTIMA_RECARGA_PREPAGO"],
                 "DATA_TYPE": "float",
                 "THRESHOLD" : "100",
-                    "OUTPUT" : {
-                        "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/movimiento/108",
-                        "HEADER" : "TRUE",
-                        "DELIMITER" : "|",
-                        "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
-                        "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
-                    }
+                "WRITE" : "TRUE"
+            },
+            "108.2": {
+                "FIELDS": ["SUSCRIPCION_ACTIVA"],
+                "DATA_TYPE": "bool",
+                "THRESHOLD" : "100",
+                "WRITE" : "TRUE"
             }
         },
         "OUTPUT" : {

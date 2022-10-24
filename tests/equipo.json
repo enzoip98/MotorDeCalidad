@@ -13,29 +13,24 @@
 		"ACCOUNT" :"fs.azure.account.key.adlseuedltb2b002.dfs.core.windows.net",
 		"KEY" : "gLVky28N5XlvBnJEVZnLLxY1ZKCuUIzPta4kC04CDP2uek1UxLd0YQ11UDB1dNUswQgzA1Gjq6Z8+AStiSd7SQ=="
     },
+    "ERROR":{
+        "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/equipo/",
+        "HEADER" : "TRUE",
+        "DELIMITER" : "|",
+        "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+        "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
+    },
     "RULES":{
 			"101":{
                 "FIELDS": ["ID_CLIENTE","ID_EQUIPO","ID_EQUIPO_CLIENTE","NOMBRE_EQUIPO","FECHA_ALTA_EQUIPO","FECHA_ULTIMA_EXTRACCION_LEGADO"],
 				"THRESHOLD" : "100",
-				"OUTPUT" : {
-                    "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/equipo/101",
-                    "HEADER" : "TRUE",
-                    "DELIMITER" : "|",
-                    "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
-                    "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
-                }
+                "WRITE" : "TRUE"
             }, 
             
 			"102":{
                 "FIELDS": ["ID_EQUIPO"],
 				"THRESHOLD" : "100",
-                "OUTPUT" : {
-                    "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/equipo/102",
-                    "HEADER" : "TRUE",
-                    "DELIMITER" : "|",
-                    "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
-                    "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
-                }
+                "WRITE" : "TRUE"
             },
             "103.1":{
                 "FIELDS": ["ID_CLIENTE"],
@@ -49,13 +44,7 @@
 					"ACCOUNT" :"fs.azure.account.key.adlseuedltb2b002.dfs.core.windows.net",
 					"KEY" : "gLVky28N5XlvBnJEVZnLLxY1ZKCuUIzPta4kC04CDP2uek1UxLd0YQ11UDB1dNUswQgzA1Gjq6Z8+AStiSd7SQ=="
                 }, 
-                "OUTPUT" : {
-                    "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/equipo/103_1",
-                    "HEADER" : "TRUE",
-                    "DELIMITER" : "|",
-                    "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
-                    "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
-                }
+                "WRITE" : "TRUE"
             },
             "103.2":{
                 "FIELDS": ["ID_SUSCRIPCION","ID_SUSCRIPCION_CLIENTE"],
@@ -69,73 +58,19 @@
 					"ACCOUNT" :"fs.azure.account.key.adlseuedltb2b002.dfs.core.windows.net",
 					"KEY" : "gLVky28N5XlvBnJEVZnLLxY1ZKCuUIzPta4kC04CDP2uek1UxLd0YQ11UDB1dNUswQgzA1Gjq6Z8+AStiSd7SQ=="
                 }, 
-                "OUTPUT" : {
-                    "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/equipo/103_2",
-                    "HEADER" : "TRUE",
-                    "DELIMITER" : "|",
-                    "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
-                    "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
-                }
+                "WRITE" : "TRUE"
             },
             "104": {
                 "FIELDS": ["FECHA_ALTA_EQUIPO", "FECHA_ULTIMA_EXTRACCION_LEGADO"],
                 "FORMAT_DATE": "yyyy-MM-dd",
 				"THRESHOLD" : "100",
-                    "OUTPUT" : {
-                        "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/equipo/104",
-                        "HEADER" : "TRUE",
-                        "DELIMITER" : "|",
-                        "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
-                        "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
-                    }
+                "WRITE" : "TRUE"
             },
-			"106.1": {
-				"FIELDS": ["NATURALEZA_PAGO"],
-				"VALUES": ["Prepago", "Pospago", "Hibrido"],
-				"THRESHOLD" : "100",
-					"OUTPUT": {
-						"PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/equipo/106_1",
-                        "HEADER" : "TRUE",
-                        "DELIMITER" : "|",
-                        "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
-                        "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
-					}
-			},
-			"106.2": {
-				"FIELDS": ["SUSCRIPCION_ACTIVA"],
-				"VALUES": ["0", "1"],
-				"THRESHOLD" : "100",
-					"OUTPUT": {
-						"PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/equipo/106_2",
-                        "HEADER" : "TRUE",
-                        "DELIMITER" : "|",
-                        "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
-                        "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
-					}
-			},
-			"106.3": {
-				"FIELDS": ["TIPO_PRODUCTO"],
-				"VALUES": ["MOVIL VOZ", "BAM","SVA","STB","BAF","TV","OTROS"],
-				"THRESHOLD" : "100",
-					"OUTPUT": {
-						"PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/equipo/106_3",
-                        "HEADER" : "TRUE",
-                        "DELIMITER" : "|",
-                        "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
-                        "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
-					}
-			}, 
             "107" : {
                 "FIELDS": ["DESCRIPCION_EQUIPO", "GAMA_EQUIPO", "ID_CLIENTE", "ID_EQUIPO", "ID_EQUIPO_CLIENTE", "ID_SERVICIO", "ID_SUSCRIPCION", "ID_SUSCRIPCION_CLIENTE", "IMEI_EQUIPO_CLIENTE", "IMSI_EQUIPO_CLIENTE", "MARCA_EQUIPO", "MODELO_EQUIPO", "NOMBRE_EQUIPO", "TIPO_EQUIPO"],
                 "VALUES": ["\""],
                 "THRESHOLD" : "100",
-                    "OUTPUT" : {
-                        "PATH" : "wasbs://rules@adlseu2esdthdev001.blob.core.windows.net/test_error/equipo/107",
-                        "HEADER" : "TRUE",
-                        "DELIMITER" : "|",
-                        "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
-                        "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
-                    }
+                "WRITE" : "TRUE"
             }
         },
 	"OUTPUT" : {

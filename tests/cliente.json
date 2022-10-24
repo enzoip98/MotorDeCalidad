@@ -7,7 +7,7 @@
 		"SUB_DOMAIN" : "PERFIL_CLIENTE",
 		"SEGMENT" : "B2B",
 		"AREA" : "COMERCIAL",
-		"PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/persona/perfil_cliente/cliente/b2b/col/2022/07",
+		"PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/persona/perfil_cliente/cliente/b2b/arg/2022/07",
         "HEADER" : "TRUE",
         "DELIMITER" : "|",
 		"ACCOUNT" :"fs.azure.account.key.adlseuedltb2b002.dfs.core.windows.net",
@@ -30,14 +30,32 @@
             "FIELDS": ["ID_CLIENTE"],
 			"THRESHOLD" : "100",
             "WRITE" : "TRUE"
-        }, 
+        },
+		"106.1":{
+			"FIELDS": ["ID_PAIS"],
+			"VALUES" : ["ARG"],
+			"THRESHOLD" : "100",
+			"WRITE" : "TRUE"
+		},
+        "106.2":{
+			"FIELDS": ["ID_TIPO_FISCAL"],
+			"VALUES" : [
+            "CUIT",
+            "CUIL",
+            "DNI",
+            "Pasaporte",
+            "Other"
+            ],
+			"THRESHOLD" : "100",
+			"WRITE" : "TRUE"
+		},
         "107" : {
             "FIELDS": ["ID_CLIENTE", "ID_CLIENTE_SF", "ID_FISCAL_CLIENTE", "ID_PAIS", "ID_TIPO_FISCAL", "NOMBRE_CLIENTE"],
             "VALUES": ["\""],
 			"THRESHOLD" : "100",
             "WRITE" : "TRUE"
         }
-			},
+		},
         "OUTPUT" : {
             "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/dq/ventas/suscripciones/suscripciones/b2b/arg/2022/08/",
             "HEADER" : "TRUE",
