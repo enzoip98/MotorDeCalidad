@@ -33,6 +33,10 @@ class Rules:
         name = "Exactitud"
         property = "Exactitud Sintactica"
         code = "108"
+    class Composision:
+        name = "Consistencia"
+        property = "Consistencia de Formato"
+        code = "109"
 
 
 class JsonParts:
