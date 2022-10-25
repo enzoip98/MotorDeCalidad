@@ -55,6 +55,26 @@ def readDf(input):
         return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(input.get(JsonParts.Path))
     elif type == "parquet":
         return spark.read.parquet(input.get(JsonParts.Path))
+    elif type == "postgre" :
+        driver = "org.postgresql.Driver"
+        database_host = JsonParts.Host
+        database_port = JsonParts.Port
+        database_name = JsonParts.DBName
+        table = JsonParts.DBTable
+        user = JsonParts.DBUser
+        password = JsonParts.DBPassword
+        url = f"jdbc:postgresql://{database_host}:{database_port}/{database_name}"
+        return spark.read.format("jdbc").option("driver", driver).option("url", url).option("dbtable", table).option("user", user).option("password", password).load()
+    elif type == "mysql" : 
+        driver = "org.mariadb.jdbc.Driver"
+        database_host = JsonParts.Host
+        database_port = JsonParts.Port
+        database_name = JsonParts.DBName
+        table = JsonParts.DBTable
+        user = JsonParts.DBUser
+        password = JsonParts.DBPassword
+        url = f"jdbc:mysql://{database_host}:{database_port}/{database_name}"
+        return spark.read.format("jdbc").option("driver", driver).option("url", url).option("dbtable", table).option("user", user).option("password", password).load()
     else:
         header = input.get(JsonParts.Header)
         return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(input.get(JsonParts.Path))

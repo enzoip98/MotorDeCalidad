@@ -65,6 +65,12 @@ class JsonParts:
     Type = "TYPE"
     Write = "WRITE"
     Error = "ERROR"
+    Host = "HOST"
+    Port = "PORT"
+    DBName = "DATABASE_NAME"
+    DBTable = "DATABASE_TABLE"
+    DBUser = "DATABASE_USER"
+    DBPassword = "DATABASE_PASSWORD"
 
 
 LeftAntiType = "leftanti"
