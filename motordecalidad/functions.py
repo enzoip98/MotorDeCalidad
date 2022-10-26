@@ -503,3 +503,24 @@ def validateLength(object:DataFrame,
     ratio = (1 - errorCount/registerAmount) * OneHundred
 
     return (registerAmount,Rules.LengthRule.code,Rules.LengthRule.name,Rules.LengthRule.property,Rules.LengthRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement, columnName, ratio, errorCount), errorDf
+
+
+def validateDataType(object:DataFrame,
+    columnName:StringType,
+    registerAmount:IntegerType,
+    entity,
+    threshold,
+    data_Type:StringType):
+
+    dataRequirement =  f"El atributo {entity}.{columnName}, debe ser de tipo {data_Type}"
+
+    if object.schema[columnName].dataType == data_Type:
+        ratio = 0
+        errorCount = 0
+    else:
+        ratio = 100
+        errorCount = registerAmount
+
+        errorDf = object.select(columnName)
+        
+    return (registerAmount, Rules.DataTypeRule.code,Rules.DataTypeRule.name,Rules.DataTypeRule.property,Rules.DataTypeRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement, columnName, ratio, errorCount), errorDf
