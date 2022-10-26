@@ -1,0 +1,65 @@
+{
+    "INPUT":{
+		"COUNTRY_ID" : "CHL",
+        "PROJECT" : "DATALAB - MOTOR",
+		"ENTITY_ID" : "FEATURE_CORE_MODELOS",
+		"DOMAIN" : "",
+		"SUB_DOMAIN" : "",
+		"SEGMENT" : "B2B",
+		"AREA" : "COMERCIAL",
+		"PATH" : "abfss://landing@adlseu2dtlbdev001.dfs.core.windows.net/chl/bi/motor/fc_modelo/2022/08",
+		"TYPE" : "parquet",
+		"ACCOUNT" :"fs.azure.account.key.adlseu2dtlbdev001.dfs.core.windows.net",
+		"KEY" : "MnUzW5s0rxyxREZ+y5LgboDWGeyaRceMihkCKI/LDnKwTAmrMNeCPgX8HDON0/HBUsD1APNgEP1++AStpdmjlQ=="
+    },
+	"ERROR":{
+		"PATH" : "wasbs://data-observada@adlseu2dtlbdev001.blob.core.windows.net/feature_modelo_arg/",
+		"HEADER" : "TRUE",
+		"DELIMITER" : "|",
+		"ACCOUNT" : "fs.azure.account.key.adlseu2dtlbdev001.blob.core.windows.net",
+		"KEY" : "MnUzW5s0rxyxREZ+y5LgboDWGeyaRceMihkCKI/LDnKwTAmrMNeCPgX8HDON0/HBUsD1APNgEP1++AStpdmjlQ=="
+	},
+    "RULES":{
+            "101" : {
+                "FIELDS": ["ID_LINEA","ID_FISCAL_CLIENTE","ID_MODELO","NOMBRE_MODELO","SCORE_CAMPANNA","DECIL_CLIENTE","PERIODO_MODELO","FECHA_CARGA_DATOS"],
+				"THRESHOLD" : "100",
+				"WRITE":"TRUE"
+            },
+            "102" : {
+                "FIELDS": ["ID_LINEA"],
+				"THRESHOLD" : "100",
+				"WRITE":"TRUE"
+            },
+            "104.1": {
+                "FIELDS": ["FECHA_CARGA_DATOS"],
+                "FORMAT_DATE": "yyyyMMdd",
+				"THRESHOLD" : "100",
+				"WRITE":"TRUE"
+            },
+			"104.2": {
+                "FIELDS": ["PERIODO_MODELO"],
+                "FORMAT_DATE": "yyyyMM",
+				"THRESHOLD" : "100",
+				"WRITE":"TRUE"
+            },
+			"106": {
+				"FIELDS": ["SCORE_CAMPANNA"],
+				"VALUES": ["1", "0"],
+				"THRESHOLD" : "100",
+				"WRITE":"TRUE"
+			},
+			"110": {
+				"FIELDS": ["ID_LINEA"],
+				"MIN_RANGE": "8",
+				"THRESHOLD" : "100",
+				"WRITE":"TRUE"
+			}
+	},
+	"OUTPUT" : {
+	"PATH" : "wasbs://data-observada@adlseu2dtlbdev001.blob.core.windows.net/dq/chl/bi/motor/fc_modelo/2022/08",
+	"HEADER" : "TRUE",
+	"DELIMITER" : "|",
+	"ACCOUNT" : "fs.azure.account.key.adlseu2dtlbdev001.blob.core.windows.net",
+	"KEY" : "MnUzW5s0rxyxREZ+y5LgboDWGeyaRceMihkCKI/LDnKwTAmrMNeCPgX8HDON0/HBUsD1APNgEP1++AStpdmjlQ=="
+	}
+}

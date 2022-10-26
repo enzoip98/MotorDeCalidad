@@ -1,0 +1,59 @@
+{
+    "INPUT":{
+		"COUNTRY_ID" : "ARG",
+        "PROJECT" : "DATALAB - MOTOR",
+		"ENTITY_ID" : "FEATURE_CORE_DISPONIBLE",
+		"DOMAIN" : "",
+		"SUB_DOMAIN" : "",
+		"SEGMENT" : "B2B",
+		"AREA" : "COMERCIAL",
+		"PATH" : "abfss://landing@adlseu2dtlbdev001.dfs.core.windows.net/arg/bi/motor/fc_disponible/2022/09/F_C_Disponibles_202209.parquet",
+		"TYPE" : "parquet",
+		"ACCOUNT" :"fs.azure.account.key.adlseu2dtlbdev001.dfs.core.windows.net",
+		"KEY" : "MnUzW5s0rxyxREZ+y5LgboDWGeyaRceMihkCKI/LDnKwTAmrMNeCPgX8HDON0/HBUsD1APNgEP1++AStpdmjlQ=="
+    },
+	"ERROR":{
+		"PATH" : "wasbs://data-observada@adlseu2dtlbdev001.blob.core.windows.net/feature_disponible_arg/",
+		"HEADER" : "TRUE",
+		"DELIMITER" : "|",
+		"ACCOUNT" : "fs.azure.account.key.adlseu2dtlbdev001.blob.core.windows.net",
+		"KEY" : "MnUzW5s0rxyxREZ+y5LgboDWGeyaRceMihkCKI/LDnKwTAmrMNeCPgX8HDON0/HBUsD1APNgEP1++AStpdmjlQ=="
+	},
+    "RULES":{
+            "101" : {
+                "FIELDS": ["ID_LINEA","ID_CAMP","DISPONIBLE_CAMP","FECHA_DATOS"],
+				"THRESHOLD" : "100",
+				"WRITE":"TRUE"
+            },
+            "102" : {
+                "FIELDS": ["ID_LINEA"],
+				"THRESHOLD" : "100",
+				"WRITE":"TRUE"
+            },
+            "104": {
+                "FIELDS": ["FECHA_DATOS"],
+                "FORMAT_DATE": "yyyyMM",
+				"THRESHOLD" : "100",
+				"WRITE":"TRUE"
+            },
+			"106": {
+				"FIELDS": ["DISPONIBLE_CAMP"],
+				"VALUES": ["1", "0"],
+				"THRESHOLD" : "100",
+				"WRITE":"TRUE"
+			},
+			"110": {
+				"FIELDS": ["ID_LINEA"],
+				"MIN_RANGE": "8",
+				"THRESHOLD" : "100",
+				"WRITE":"TRUE"
+			}
+	},
+	"OUTPUT" : {
+	"PATH" : "wasbs://data-observada@adlseu2dtlbdev001.blob.core.windows.net/dq/arg/bi/motor/fc_disponible/2022/09/F_C_Disponible_202209_obs",
+	"HEADER" : "TRUE",
+	"DELIMITER" : "|",
+	"ACCOUNT" : "fs.azure.account.key.adlseu2dtlbdev001.blob.core.windows.net",
+	"KEY" : "MnUzW5s0rxyxREZ+y5LgboDWGeyaRceMihkCKI/LDnKwTAmrMNeCPgX8HDON0/HBUsD1APNgEP1++AStpdmjlQ=="
+	}
+}

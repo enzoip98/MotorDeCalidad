@@ -1,0 +1,65 @@
+{
+    "INPUT":{
+		"COUNTRY_ID" : "ARG",
+        "PROJECT" : "DATALAB - MOTOR",
+		"ENTITY_ID" : "FEATURE_CORE_CAMPANYA",
+		"DOMAIN" : "",
+		"SUB_DOMAIN" : "",
+		"SEGMENT" : "B2B",
+		"AREA" : "COMERCIAL",
+		"PATH" : "abfss://landing@adlseu2dtlbdev001.dfs.core.windows.net/arg/bi/motor/fc_campanya/2022/09/F_C_Campanya_202209.parquet",
+		"TYPE":"parquet",
+		"ACCOUNT" :"fs.azure.account.key.adlseu2dtlbdev001.dfs.core.windows.net",
+		"KEY" : "MnUzW5s0rxyxREZ+y5LgboDWGeyaRceMihkCKI/LDnKwTAmrMNeCPgX8HDON0/HBUsD1APNgEP1++AStpdmjlQ=="
+    },
+	"ERROR":{
+		"PATH" : "wasbs://data-observada@adlseu2dtlbdev001.blob.core.windows.net/feature_campanya_arg/",
+		"HEADER" : "TRUE",
+		"DELIMITER" : "|",
+		"ACCOUNT" : "fs.azure.account.key.adlseu2dtlbdev001.blob.core.windows.net",
+		"KEY" : "MnUzW5s0rxyxREZ+y5LgboDWGeyaRceMihkCKI/LDnKwTAmrMNeCPgX8HDON0/HBUsD1APNgEP1++AStpdmjlQ=="
+	},
+    "RULES":{
+            "101" : {
+                "FIELDS": ["id_camp","fl_disponible_OUT","fl_disponible_IN","fl_disponible_DIGITAL","vision","tipo","nombre","coste_fijo_in","coste_fijo_out","coste_fijo_digital","coste_variable_in","coste_variable_out","coste_variable_digital","valor_estrategico","f_inicio","f_fin"],
+				"THRESHOLD" : "100",
+				"WRITE":"TRUE"
+            },
+            "102" : {
+                "FIELDS": ["id_camp"],
+				"THRESHOLD" : "100",
+				"WRITE":"TRUE"
+            },
+            "104": {
+                "FIELDS": ["f_inicio","f_fin"],
+                "FORMAT_DATE": "yyyyMMdd",
+				"THRESHOLD" : "100",
+				"WRITE":"TRUE"
+            },
+			"105":{
+				"FIELDS": ["stock"],
+				"MIN_RANGE": "0",
+				"THRESHOLD" : "100",
+				"WRITE":"TRUE"
+			},
+			"106.1": {
+				"FIELDS": ["vision"],
+				"VALUES": ["fija", "movil", "totalizado"],
+				"THRESHOLD" : "100",
+				"WRITE":"TRUE"
+			}, 
+            "106.2": {
+				"FIELDS": ["fl_disponible_OUT","fl_disponible_IN","fl_disponible_DIGITAL"],
+				"VALUES": ["0", "1"],
+				"THRESHOLD" : "100",
+				"WRITE":"TRUE"
+			}
+	},
+	"OUTPUT" : {
+	"PATH" : "wasbs://data-observada@adlseu2dtlbdev001.blob.core.windows.net/dq/arg/bi/motor/fc_campanya/2022/09/F_C_Campanya_202209_obs",
+	"HEADER" : "TRUE",
+	"DELIMITER" : "|",
+	"ACCOUNT" : "fs.azure.account.key.adlseu2dtlbdev001.blob.core.windows.net",
+	"KEY" : "MnUzW5s0rxyxREZ+y5LgboDWGeyaRceMihkCKI/LDnKwTAmrMNeCPgX8HDON0/HBUsD1APNgEP1++AStpdmjlQ=="
+	}
+}
