@@ -37,6 +37,10 @@ class Rules:
         name = "Consistencia"
         property = "Consistencia de Formato"
         code = "109"
+    class LengthRule:
+        name = "Consistencia"
+        property = "Consistencia de Formato"
+        code = "110"
 
 
 class JsonParts:

@@ -255,6 +255,25 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
                     writeDfappend(errorTotal, error, code,rules[code].get(JsonParts.Write))
                 rulesData.append(data)
                 print("regla de caracteres composicion: %s segundos" % (time.time() - t))
+
+        elif code[0:3] == Rules.LengthRule.code:
+            print("Inicializando regla de longitud")
+            columnName = rules[code].get(JsonParts.Fields)
+            threshold = rules[code].get(JsonParts.Threshold)
+            minRange = rules[code].get(JsonParts.MinRange)
+            maxRange = rules[code].get(JsonParts.MaxRange)
+
+            for field in columnName :
+                t = time.time()
+                data, errorDf = validateRange(object,field,registerAmount,entity,threshold,minRange,maxRange)
+                errorDesc = "Longitud - " + field
+                if data[-One] > Zero:
+                    errorTotal = errorDf.withColumn("error", lit(errorDesc))\
+                    .withColumn("run_time",lit(runTime))
+                    writeDfappend(errorTotal, error, code,rules[code].get(JsonParts.Write))
+                rulesData.append(data)
+                print("regla de rango: %s segundos" % (time.time() - t))
+        
         else:
             pass
     validationData:DataFrame = spark.createDataFrame(data = rulesData, schema = OutputDataFrameColumns)
@@ -460,3 +479,27 @@ def validateComposision(object: DataFrame,
     ratio = (One - errorCount/registerAmount) * OneHundred
 
     return (registerAmount, Rules.Composision.code, Rules.Composision.name, Rules.Composision.property, Rules.Composision.code + "/" + entity + "/" + columnName,threshold,dataRequirement,columnName,ratio, errorCount), errorDf
+
+def validateLength(object:DataFrame,
+    columnName:StringType,
+    registerAmount:IntegerType,
+    entity,
+    threshold,
+    minRange:float = None,
+    maxRange:float = None,):
+
+    dataRequirement =  f"El atributo {entity}.{columnName}, debe contener este numero de caracteres {minRange} y {maxRange}"
+
+    opel,opeg = chooseComparisonOparator(True, True, True)
+
+    if minRange is None and maxRange is not None:
+        errorDf = object.filter(opeg(length(col(columnName)), maxRange))
+    elif minRange is not None and maxRange is None:
+        errorDf = object.filter(opel(length(col(columnName)), minRange))
+    else: 
+        errorDf = object.filter(opel(length(col(columnName)), minRange) | opeg(length(col(columnName)), maxRange))       
+
+    errorCount = errorDf.count()
+    ratio = (1 - errorCount/registerAmount) * OneHundred
+
+    return (registerAmount,Rules.LengthRule.code,Rules.LengthRule.name,Rules.LengthRule.property,Rules.LengthRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement, columnName, ratio, errorCount), errorDf
