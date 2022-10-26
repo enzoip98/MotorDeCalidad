@@ -443,7 +443,7 @@ def validateForbiddenCharacters(object:DataFrame,
     errorDf=object.filter(col(columnName)!=col('replaced')).drop('replaced')
 
     errorCount = errorDf.count()
-    ratio = (1 - errorCount/registerAmount) * OneHundred
+    ratio = (One - errorCount/registerAmount) * OneHundred
 
     return (registerAmount, Rules.ForbiddenRule.code,Rules.ForbiddenRule.name,Rules.ForbiddenRule.property,Rules.ForbiddenRule.code + "/" + entity + "/" + columnName ,threshold,dataRequirement, columnName, ratio, errorCount), errorDf 
 
@@ -500,6 +500,6 @@ def validateLength(object:DataFrame,
         errorDf = object.filter(opel(length(col(columnName)), minRange) | opeg(length(col(columnName)), maxRange))       
 
     errorCount = errorDf.count()
-    ratio = (1 - errorCount/registerAmount) * OneHundred
+    ratio = (One - errorCount/registerAmount) * OneHundred
 
     return (registerAmount,Rules.LengthRule.code,Rules.LengthRule.name,Rules.LengthRule.property,Rules.LengthRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement, columnName, ratio, errorCount), errorDf
