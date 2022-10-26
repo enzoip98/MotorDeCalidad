@@ -47,7 +47,8 @@ La sección de reglas contiene las reglas que serán ejecutadas y los parámetro
 6. [Regla de Catálogo - 106](#regla-de-catálogo-106)
 7. [Regla de Caracteres Prohibidos - 107](#regla-de-caracteres-prohibidos-107)
 8. [Regla de Tipo de Dato(CSV) - 108](#regla-de-tipo-de-datocsv-108)
-9. [Regla de Compisición - 109](#regla-de-composición-109)
+9. [Regla de Composición - 109](#regla-de-composición-109)
+10. [Regla de longitud - 110](#regla-de-longitud-110)
 
 ## Output
 La sección output contiene la información necesaria para la escritura de los resultados de la validación y debe contener los siguientes atributos
