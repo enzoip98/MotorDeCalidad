@@ -82,12 +82,44 @@ Esta regla evalúa si los registros dentor las columnas específicadas son únic
 |WRITE|Valor que determina si se escribirá o no la data observada (TRUE o FALSE)|Opcional (Se toma TRUE por defecto)|
 
 ### Regla de Integridad Referencial-103
+Esta regla evalúa si los registros de la entidad evaluada existen en la entidad de referencia
+
+|Atributo|Definición|Tipo|
+| ------------- | ------------- | ------------|
+|FIELDS|Lista que contiene el nombre de los columnas que serán evaluadas|Obligatorio|
+|THRESHOLD|Umbral de calidad de ejecución|Obligatorio|
+|INPUT|Atributo que contiene los atributos de la entidad referenciada|Obligatorio|
+|WRITE|Valor que determina si se escribirá o no la data observada (TRUE o FALSE)|Opcional (Se toma TRUE por defecto)|
+
+La sección input de la regla de integridad referencial debe contener los siguientes atributos
+
+|Atributo|Definición|Tipo|
+| ------------- | ------------- | ------------|
+|PATH|Ruta para la escritura|Obligatorio|
+|HEADER|Valor de Cabecera para CSV (TRUE o FALSE)|Obligatorio|
+|DELIMITER|Caracter delimitador para CSV|Obligatorio|
+|FIELDS|Lista que contiene los nombres de las columnas que serán referenciadas|Obligatorio|
+|ACCOUNT|Nombre de cuenta de acceso para almacenamiento de azure|Obligatorio|
+|KEY|Llave de acceso para almacenamiento de azure|Obligatorio|
+
+Cabe recalcar que el ordén del nombre de las columnas del atributo Fields de la reglas y el atributo Fields de la sección input deben corresponderse, es decir, se evaluará el primer elemento de la lista del atributo Fields contra el primer elemento de la la lista del atributo Input.Fields y así correspondientemente.
 
 ### Regla de Formato de Fecha-104
+Esta regla evalúa que los registros evaluados correspondan con el formato definido
+
+|Atributo|Definición|Tipo|
+| ------------- | ------------- | ------------|
+|FIELDS|Lista que contiene el nombre de los columnas que serán evaluadas|Obligatorio|
+|FORMAT_DATE|Formato de fecha con el que se evaluará el registro (Opciones: yyyy-MM-dd, yyyy/MM/dd, yyyyMMdd, yyyyMM)|Obligatorio|
+|THRESHOLD|Umbral de calidad de ejecución|Obligatorio|
+|WRITE|Valor que determina si se escribirá o no la data observada (TRUE o FALSE)|Opcional (Se toma TRUE por defecto)|
 
 ### Regla de Rango-105
+Esta regla evalua que el valor de los registros evaluados se encuentro dentro de un rango numérico definido
+
 
 ### Regla de Catálogo-106
+Esta regla evalua que el valor de los registros evaluados sea igual que los valores definidos
 
 |Atributo|Definición|Tipo|
 | ------------- | ------------- | ------------|
@@ -97,6 +129,14 @@ Esta regla evalúa si los registros dentor las columnas específicadas son únic
 |WRITE|Valor que determina si se escribirá o no la data observada (TRUE o FALSE)|Opcional (Se toma TRUE por defecto)|
 
 ### Regla de Caracteres Prohibidos-107
+Esta regla evalua que los registros evaluados no contienen el caracter que se evalúa
+
+|Atributo|Definición|Tipo|
+| ------------- | ------------- | ------------|
+|FIELDS|Lista que contiene el nombre de los columnas que serán evaluadas|Obligatorio|
+|VALUES|Lista que contiene los valores prohibidos|Obligatorio|
+|THRESHOLD|Umbral de calidad de ejecución|Obligatorio|
+|WRITE|Valor que determina si se escribirá o no la data observada (TRUE o FALSE)|Opcional (Se toma TRUE por defecto)|
 
 ### Regla de Tipo de Dato(CSV)-108
 
