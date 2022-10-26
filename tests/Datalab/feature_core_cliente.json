@@ -1,0 +1,90 @@
+{
+    "INPUT":{
+		"COUNTRY_ID" : "ARG",
+        "PROJECT" : "DATALAB - MOTOR",
+		"ENTITY_ID" : "FEATURE_CORE_CLIENTE",
+		"DOMAIN" : "",
+		"SUB_DOMAIN" : "",
+		"SEGMENT" : "B2B",
+		"AREA" : "COMERCIAL",
+		"PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/ventas/ventas_servicios_principales/servicio/b2b/arg/2022/08",
+        "HEADER" : "TRUE",
+        "DELIMITER" : "|",
+		"ACCOUNT" :"fs.azure.account.key.adlseuedltb2b002.dfs.core.windows.net",
+		"KEY" : "gLVky28N5XlvBnJEVZnLLxY1ZKCuUIzPta4kC04CDP2uek1UxLd0YQ11UDB1dNUswQgzA1Gjq6Z8+AStiSd7SQ=="
+    },
+    "ERROR" : {
+        "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/test_error/feature_core_cliente/",
+        "HEADER" : "TRUE",
+        "DELIMITER" : "|",
+        "ACCOUNT" : "fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+        "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
+    },
+    "RULES":{
+            "101" : {
+                "FIELDS": ["ID_LINEA","ID_TIPO_FISCAL","ID_FISCAL_CLIENTE","SEGMENTO_CLIENTE","SUBSEGMENTO_CLIENTE","ID_CLIENTE","TIPO_CLIENTE","NEGOCIO_LINEA","TIPO_LINEA","ARPU_CLIENTE","FECHA_CARGA_DATOS","FECHA_DATOS","GRUPO_CONTROL"],
+				"THRESHOLD" : "100",
+                "WRITE" : "TRUE"
+            },
+            "102" : {
+                "FIELDS": ["ID_LINEA"],
+				"THRESHOLD" : "100",
+                "WRITE" : "TRUE"
+            },
+            "104": {
+                "FIELDS": ["FECHA_CARGA_DATOS", "FECHA_DATOS"],
+                "FORMAT_DATE": "YYYYMMDD",
+				"THRESHOLD" : "100",
+                "WRITE" : "TRUE"
+            },
+			"105.1": {
+				"FIELDS": ["ARPU_CLIENTE"],
+				"THRESHOLD" : "100",
+				"MIN_RANGE": "0",
+                "WRITE" : "TRUE"
+			},
+			"106.1": {
+				"FIELDS": ["SEGMENTO_CLIENTE"],
+				"VALUES": ["B2C", "B2B"],
+				"THRESHOLD" : "100",
+				"WRITE" : "TRUE"
+			}, 
+            "106.2": {
+				"FIELDS": ["TIPO_CLIENTE"],
+				"VALUES": ["FIJO", "MOVIL", "TOTALIZADO"],
+				"THRESHOLD" : "100",
+				"WRITE" : "TRUE"
+			},
+            "106.3": {
+				"FIELDS": ["NEGOCIO_LINEA"],
+				"VALUES": ["FIJO", "MOVIL"],
+				"THRESHOLD" : "100",
+				"WRITE" : "TRUE"
+			},
+            "106.4": {
+				"FIELDS": ["TIPO_LINEA"],
+				"VALUES": ["PREPAGO", "POSPAGO", "HIBRIDO"],
+				"THRESHOLD" : "100",
+				"WRITE" : "TRUE"
+			},
+            "106.5": {
+				"FIELDS": ["GRUPO_RIESGO"],
+				"VALUES": ["g1 (Risk)", "g2 (Bound)", "g3 (Unbound)"],
+				"THRESHOLD" : "100",
+				"WRITE" : "TRUE"
+			},
+            "106.6": {
+				"FIELDS": ["GRUPO_RIESGO"],
+				"VALUES": ["0", "1"],
+				"THRESHOLD" : "100",
+				"WRITE" : "TRUE"
+			}
+	},
+    "OUTPUT" : {
+        "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/dq/ventas/ventas_servicios_principales/servicio/b2b/arg/2022/08/",
+        "HEADER" : "TRUE",
+        "DELIMITER" : "|",
+        "ACCOUNT" :"fs.azure.account.key.adlseu2edthdev001.blob.core.windows.net",
+        "KEY" : "T1RZsgj62zrRWcsYRW3QGr3+TEhtalj8o/fU3Zqmh4ef3TYxZw0P7+neqmgOPmbFOoVPZhLFT9GV+AStAj2YpA=="
+    }
+}

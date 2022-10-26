@@ -26,30 +26,30 @@
 			"THRESHOLD" : "100",
             "WRITE" : "TRUE"
         }, 
-            "102":{
-                "FIELDS": ["ID_FACTURACION"],
-				"THRESHOLD" : "100",
-                "WRITE" : "TRUE"
+        "102":{
+            "FIELDS": ["ID_FACTURACION"],
+            "THRESHOLD" : "100",
+            "WRITE" : "TRUE"
+        },
+        "103":{
+            "FIELDS": ["ID_CLIENTE"],
+            "THRESHOLD" : "100",
+            "INPUT": {
+                "PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/persona/perfil_cliente/cliente/b2b/arg/2022/08",
+                "HEADER" : "TRUE",
+                "DELIMITER" : "|",
+                "FIELDS" : ["ID_CLIENTE"],
+                "ACCOUNT" :"fs.azure.account.key.adlseuedltb2b002.dfs.core.windows.net",
+                "KEY" : "gLVky28N5XlvBnJEVZnLLxY1ZKCuUIzPta4kC04CDP2uek1UxLd0YQ11UDB1dNUswQgzA1Gjq6Z8+AStiSd7SQ=="
             },
-            "103":{
-                "FIELDS": ["ID_CLIENTE"],
-				"THRESHOLD" : "100",
-                "INPUT": {
-                    "PATH" : "abfss://data@adlseuedltb2b002.dfs.core.windows.net/persona/perfil_cliente/cliente/b2b/arg/2022/08",
-                    "HEADER" : "TRUE",
-                    "DELIMITER" : "|",
-                    "FIELDS" : ["ID_CLIENTE"],
-                    "ACCOUNT" :"fs.azure.account.key.adlseuedltb2b002.dfs.core.windows.net",
-					"KEY" : "gLVky28N5XlvBnJEVZnLLxY1ZKCuUIzPta4kC04CDP2uek1UxLd0YQ11UDB1dNUswQgzA1Gjq6Z8+AStiSd7SQ=="
-                },
-                "WRITE" : "TRUE"
-            }, 
-            "107" : {
-                "FIELDS": ["ID_CLIENTE", "ID_FACTURACION", "ID_FACTURACION_CLIENTE"],
-                "VALUES": ["\""],
-                "THRESHOLD" : "100",
-                "WRITE" : "TRUE"
-            }
+            "WRITE" : "TRUE"
+        }, 
+        "107" : {
+            "FIELDS": ["ID_CLIENTE", "ID_FACTURACION", "ID_FACTURACION_CLIENTE"],
+            "VALUES": ["\""],
+            "THRESHOLD" : "100",
+            "WRITE" : "TRUE"
+        }
         },
         "OUTPUT" : {
             "PATH" : "wasbs://rules@adlseu2edthdev001.blob.core.windows.net/dq/finanzas/facturacion/cuenta_facturacion/b2b/arg/2022/08/",

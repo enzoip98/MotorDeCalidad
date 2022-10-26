@@ -206,7 +206,7 @@
             },
             "108.2": {
                 "FIELDS": ["SUSCRIPCION_ACTIVA"],
-                "DATA_TYPE": "bool",
+                "DATA_TYPE": "boolean",
                 "THRESHOLD" : "100",
                 "WRITE" : "TRUE"
             }
