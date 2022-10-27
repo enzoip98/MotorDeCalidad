@@ -49,6 +49,7 @@ La sección de reglas contiene las reglas que serán ejecutadas y los parámetro
 8. [Regla de Tipo de Dato(CSV) - 108](#regla-de-tipo-de-datocsv-108)
 9. [Regla de Composición - 109](#regla-de-composición-109)
 10. [Regla de longitud - 110](#regla-de-longitud-110)
+11. [Regla de Tipo de Dato(Parquet) - 111](#regla-de-tipo-de-datoparquet-111)
 
 ## Output
 La sección output contiene la información necesaria para la escritura de los resultados de la validación y debe contener los siguientes atributos
@@ -117,6 +118,13 @@ Esta regla evalúa que los registros evaluados correspondan con el formato defin
 ### Regla de Rango-105
 Esta regla evalua que el valor de los registros evaluados se encuentro dentro de un rango numérico definido
 
+|Atributo|Definición|Tipo|
+| ------------- | ------------- | ------------|
+|FIELDS|Lista que contiene el nombre de los columnas que serán evaluadas|Obligatorio|
+|MIN_RANGE|Atributo que contiene el valor minimo númerico permitido (puede dejarse vacio)|Obligatorio|
+|MAX_RANGE|Atributo que contiene el valor maximo númerico permitido (puede dejarse vacio)|Obligatorio|
+|THRESHOLD|Umbral de calidad de ejecución|Obligatorio|
+|WRITE|Valor que determina si se escribirá o no la data observada (TRUE o FALSE)|Opcional (Se toma TRUE por defecto)|
 
 ### Regla de Catálogo-106
 Esta regla evalua que el valor de los registros evaluados sea igual que los valores definidos
@@ -139,14 +147,42 @@ Esta regla evalua que los registros evaluados no contienen el caracter que se ev
 |WRITE|Valor que determina si se escribirá o no la data observada (TRUE o FALSE)|Opcional (Se toma TRUE por defecto)|
 
 ### Regla de Tipo de Dato(CSV)-108
+Esta regla evalua si los registros de una columna de un fichero se pueden convertir en tipo float, int, string o booleano
+
+|Atributo|Definición|Tipo|
+| ------------- | ------------- | ------------|
+|FIELDS|Lista que contiene el nombre de los columnas que serán evaluadas|Obligatorio|
+|DATA_TYPE|Atributo que contiene el tipo de dato que se evalua (int, str, float, boolean)|Obligatorio|
+|THRESHOLD|Umbral de calidad de ejecución|Obligatorio|
+|WRITE|Valor que determina si se escribirá o no la data observada (TRUE o FALSE)|Opcional (Se toma TRUE por defecto)|
 
 ### Regla de Composición-109
-
-Esta regla evalua que los registros evaluados no contienen el caracter que se evalúa
+Esta regla evalua que las columnas esten compuestas por otras columnas
 
 |Atributo|Definición|Tipo|
 | ------------- | ------------- | ------------|
 |FIELDS|Lista que contiene el nombre de los columnas que serán evaluadas|Obligatorio|
 |VALUES|Lista que contiene las columnas que conformaran la columna final|Obligatorio|
+|THRESHOLD|Umbral de calidad de ejecución|Obligatorio|
+|WRITE|Valor que determina si se escribirá o no la data observada (TRUE o FALSE)|Opcional (Se toma TRUE por defecto)|
+
+### Regla de Longitud-110
+Esta regla evalua que los registros evaluados tengan un limite inferior, superior o rango de caracteres permitidos
+
+|Atributo|Definición|Tipo|
+| ------------- | ------------- | ------------|
+|FIELDS|Lista que contiene el nombre de los columnas que serán evaluadas|Obligatorio|
+|MIN_RANGE|Atributo que contiene el valor minimo númerico permitido (puede dejarse vacio)|Obligatorio|
+|MAX_RANGE|Atributo que contiene el valor maximo númerico permitido (puede dejarse vacio)|Obligatorio|
+|THRESHOLD|Umbral de calidad de ejecución|Obligatorio|
+|WRITE|Valor que determina si se escribirá o no la data observada (TRUE o FALSE)|Opcional (Se toma TRUE por defecto)|
+
+### Regla de Tipo de Dato(Parquet)-111
+Esta regla evalua si el schema de una columna de un fichero es de tipo solicitado
+
+|Atributo|Definición|Tipo|
+| ------------- | ------------- | ------------|
+|FIELDS|Lista que contiene el nombre de los columnas que serán evaluadas|Obligatorio|
+|DATA_TYPE|Atributo que contiene el tipo de dato que se evalua|Obligatorio|
 |THRESHOLD|Umbral de calidad de ejecución|Obligatorio|
 |WRITE|Valor que determina si se escribirá o no la data observada (TRUE o FALSE)|Opcional (Se toma TRUE por defecto)|
