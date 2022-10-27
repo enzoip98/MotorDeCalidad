@@ -41,6 +41,10 @@ class Rules:
         name = "Consistencia"
         property = "Consistencia de Formato"
         code = "110"
+    class DataTypeRule:
+        name = "Exactitud"
+        property = "Exactitud de Formato"
+        code = "111"
 
 
 class JsonParts:
