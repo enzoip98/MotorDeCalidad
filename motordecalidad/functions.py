@@ -124,7 +124,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
             threshold = rules[code].get(JsonParts.Threshold)
             data, errorDf = validateDuplicates(object,testColumn,registerAmount,entity,threshold)
             errorDesc = "Duplicidad - " + str(testColumn)
-            if data[-1] > 0 :
+            if data[-One] > 0 :
                 errorTotal = errorDf.withColumn("error", lit(errorDesc))\
                 .withColumn("run_time", lit(runTime))
                 writeDfappend(errorTotal,error, code,rules[code].get(JsonParts.Write))
@@ -313,7 +313,7 @@ def validateNull(object:DataFrame,field: StringType,registersAmount: IntegerType
 def validateDuplicates(object:DataFrame,fields:List,registersAmount: IntegerType,entity: StringType,threshold):
     fieldString = ','.join(fields)
     dataRequirement = f"Todos los identificadores {entity}.({fieldString}) deben ser distintos (PRIMARY KEY)."
-    duplicates = object.groupBy(fields).count().filter(col("count") != 1)
+    duplicates = object.groupBy(fields).count().filter(col("count") != One)
     errorDf = object.join(duplicates.select(fields), fields, 'inner')
     nonUniqueRegistersAmount = errorDf.count()
     uniqueRegistersAmount = registersAmount - nonUniqueRegistersAmount
@@ -379,7 +379,7 @@ def validateRange(object:DataFrame,
         errorDf = object.filter(opel(col(columnName),minRange) & opeg(col(columnName),maxRange))
 
     errorCount = errorDf.count()
-    ratio = (1 - errorCount/registerAmount) * OneHundred
+    ratio = (One - errorCount/registerAmount) * OneHundred
 
     return (registerAmount,Rules.RangeRule.code,Rules.RangeRule.name,Rules.RangeRule.property,Rules.RangeRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement, columnName, ratio, errorCount), errorDf
 
@@ -407,7 +407,7 @@ def chooseComparisonOparator(includeLimitLeft:bool,includeLimitRight:bool,inclus
         else:
             res.append(operator.lt)
     
-    return res[0],res[1]
+    return res[Zero],res[One]
 
 
 def validateCatalog(object:DataFrame,
@@ -443,7 +443,7 @@ def validateForbiddenCharacters(object:DataFrame,
     errorDf=object.filter(col(columnName)!=col('replaced')).drop('replaced')
 
     errorCount = errorDf.count()
-    ratio = (1 - errorCount/registerAmount) * OneHundred
+    ratio = (One - errorCount/registerAmount) * OneHundred
 
     return (registerAmount, Rules.ForbiddenRule.code,Rules.ForbiddenRule.name,Rules.ForbiddenRule.property,Rules.ForbiddenRule.code + "/" + entity + "/" + columnName ,threshold,dataRequirement, columnName, ratio, errorCount), errorDf 
 
@@ -500,7 +500,7 @@ def validateLength(object:DataFrame,
         errorDf = object.filter(opel(length(col(columnName)), minRange) | opeg(length(col(columnName)), maxRange))       
 
     errorCount = errorDf.count()
-    ratio = (1 - errorCount/registerAmount) * OneHundred
+    ratio = (One - errorCount/registerAmount) * OneHundred
 
     return (registerAmount,Rules.LengthRule.code,Rules.LengthRule.name,Rules.LengthRule.property,Rules.LengthRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement, columnName, ratio, errorCount), errorDf
 
@@ -515,10 +515,10 @@ def validateDataType(object:DataFrame,
     dataRequirement =  f"El atributo {entity}.{columnName}, debe ser de tipo {data_Type}"
 
     if object.schema[columnName].dataType == data_Type:
-        ratio = 0
-        errorCount = 0
+        ratio = Zero
+        errorCount = Zero
     else:
-        ratio = 100
+        ratio = OneHundred
         errorCount = registerAmount
 
         errorDf = object.select(columnName)
