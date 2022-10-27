@@ -141,3 +141,12 @@ Esta regla evalua que los registros evaluados no contienen el caracter que se ev
 ### Regla de Tipo de Dato(CSV)-108
 
 ### Regla de Composición-109
+
+Esta regla evalua que los registros evaluados no contienen el caracter que se evalúa
+
+|Atributo|Definición|Tipo|
+| ------------- | ------------- | ------------|
+|FIELDS|Lista que contiene el nombre de los columnas que serán evaluadas|Obligatorio|
+|VALUES|Lista que contiene las columnas que conformaran la columna final|Obligatorio|
+|THRESHOLD|Umbral de calidad de ejecución|Obligatorio|
+|WRITE|Valor que determina si se escribirá o no la data observada (TRUE o FALSE)|Opcional (Se toma TRUE por defecto)|
