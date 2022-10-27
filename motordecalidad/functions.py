@@ -517,10 +517,10 @@ def validateDataType(object:DataFrame,
     if object.schema[columnName].dataType == data_Type:
         ratio = Zero
         errorCount = Zero
+        errorDf = spark.emptyDataFrame
     else:
         ratio = OneHundred
         errorCount = registerAmount
-
-        errorDf = object.select(columnName)
+        errorDf = spark.emptyDataFrame
         
     return (registerAmount, Rules.DataTypeRule.code,Rules.DataTypeRule.name,Rules.DataTypeRule.property,Rules.DataTypeRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement, columnName, ratio, errorCount), errorDf
