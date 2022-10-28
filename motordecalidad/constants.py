@@ -79,6 +79,7 @@ class JsonParts:
     DBTable = "DATABASE_TABLE"
     DBUser = "DATABASE_USER"
     DBPassword = "DATABASE_PASSWORD"
+    TempPath = "TEMPORAL_PATH"
 
 
 LeftAntiType = "leftanti"
