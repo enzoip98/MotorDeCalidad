@@ -274,6 +274,19 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
                 rulesData.append(data)
                 print("regla de rango: %s segundos" % (time.time() - t))
         
+        elif code[0:3] == Rules.DataTypeRule.code:
+            print("Inicializando regla de tipo de dato parquet")
+            columnName = rules[code].get(JsonParts.Fields)
+            threshold = rules[code].get(JsonParts.Threshold)
+            data_Type = rules[code].get(JsonParts.DataType)            
+
+            for field in columnName :
+                t = time.time()
+                data = validateRange(object,field,registerAmount,entity,threshold, data_Type)
+                    
+                rulesData.append(data)
+                print("regla de rango: %s segundos" % (time.time() - t))
+
         else:
             pass
     validationData:DataFrame = spark.createDataFrame(data = rulesData, schema = OutputDataFrameColumns)
@@ -517,10 +530,9 @@ def validateDataType(object:DataFrame,
     if object.schema[columnName].dataType == data_Type:
         ratio = Zero
         errorCount = Zero
-        errorDf = spark.emptyDataFrame
+        
     else:
         ratio = OneHundred
         errorCount = registerAmount
-        errorDf = spark.emptyDataFrame
-        
-    return (registerAmount, Rules.DataTypeRule.code,Rules.DataTypeRule.name,Rules.DataTypeRule.property,Rules.DataTypeRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement, columnName, ratio, errorCount), errorDf
+
+    return (registerAmount, Rules.DataTypeRule.code,Rules.DataTypeRule.name,Rules.DataTypeRule.property,Rules.DataTypeRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement, columnName, ratio, errorCount)
