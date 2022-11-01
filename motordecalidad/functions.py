@@ -536,3 +536,26 @@ def validateDataType(object:DataFrame,
         errorCount = registerAmount
 
     return (registerAmount, Rules.DataTypeRule.code,Rules.DataTypeRule.name,Rules.DataTypeRule.property,Rules.DataTypeRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement, columnName, ratio, errorCount)
+
+def validateFormatNumeric(object:DataFrame,
+    columnName:StringType,
+    registerAmount:IntegerType,
+    maxInt=True,
+    sep:StringType='.',
+    numDec=True):
+
+    if(str(object.schema[columnName].dataType)!='StringType'):
+        object=object.withColumn(columnName,col(columnName).cast('string'))
+
+    if(sep == '.'):
+        sep = "\\"+sep
+
+    errorDf = object.filter(regexp_replace(col(columnName),sep, "")==col(columnName))
+
+    if(maxInt!=True):
+        errorDf=errorDf.union(object.filter(length(split(col(columnName),sep).getItem(0))>maxInt))
+
+    if(numDec!=True):
+        errorDf=errorDf.union(object.filter(length(split(col(columnName),sep).getItem(1))!=numDec))
+
+    return (registerAmount), errorDf

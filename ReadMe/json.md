@@ -25,6 +25,10 @@ La sección input debe contener los siguientes atributos
 |DATABASE_USER|Nombre de usuario de acceso para la base de datos|Opcional (solo aplica para bases de datos)|
 |DATABASE_PASSWORD|Contraseña de acceso para la base de datos|Opcional (solo aplica para bases de datos)|
 
+#### Ejemplo 
+
+![Input](INPUT.png)
+
 ## Error
 La sección error contiene la información necesaria para la escritura de la data observada y debe contener los siguiente atributos
 
@@ -35,6 +39,10 @@ La sección error contiene la información necesaria para la escritura de la dat
 |DELIMITER|Caracter delimitador para CSV|Obligatorio|
 |ACCOUNT|Nombre de cuenta de acceso para almacenamiento de azure|Obligatorio|
 |KEY|Llave de acceso para almacenamiento de azure|Obligatorio|
+
+#### Ejemplo 
+
+![Error](ERROR.png)
 
 ## Rules
 La sección de reglas contiene las reglas que serán ejecutadas y los parámetros de ejecución que estas necesitan. En esta sección los atributos son los códigos de las reglas. Si es necesario ejecutar una regla más de una vez se puede anteponer 
@@ -51,6 +59,9 @@ La sección de reglas contiene las reglas que serán ejecutadas y los parámetro
 10. [Regla de longitud - 110](#regla-de-longitud-110)
 11. [Regla de Tipo de Dato(Parquet) - 111](#regla-de-tipo-de-datoparquet-111)
 
+#### Ejemplo de la estructura de las reglas completa
+![Rules](RULES.png)
+
 ## Output
 La sección output contiene la información necesaria para la escritura de los resultados de la validación y debe contener los siguientes atributos
 
@@ -62,6 +73,9 @@ La sección output contiene la información necesaria para la escritura de los r
 |ACCOUNT|Nombre de cuenta de acceso para almacenamiento de azure|Obligatorio|
 |KEY|Llave de acceso para almacenamiento de azure|Obligatorio|
 
+#### Ejemplo
+![Output](OUTPUT.png)
+
 ### Regla de Nulos-101
 Esta regla evalúa si los registros dentro de las columnas específicas son nulos
 Debe contener los siguientes atributos
@@ -72,6 +86,9 @@ Debe contener los siguientes atributos
 |THRESHOLD|Umbral de calidad de ejecución|Obligatorio|
 |WRITE|Valor que determina si se escribirá o no la data observada (TRUE o FALSE)|Opcional (Se toma TRUE por defecto)|
 
+#### Ejemplo 
+![101](101.png)
+
 
 ### Regla de Duplicados-102
 Esta regla evalúa si los registros dentor las columnas específicadas son únicas en la tabla
@@ -81,6 +98,10 @@ Esta regla evalúa si los registros dentor las columnas específicadas son únic
 |FIELDS|Lista que contiene el nombre de los columnas que serán evaluadas|Obligatorio|
 |THRESHOLD|Umbral de calidad de ejecución|Obligatorio|
 |WRITE|Valor que determina si se escribirá o no la data observada (TRUE o FALSE)|Opcional (Se toma TRUE por defecto)|
+
+#### Ejemplo 
+![102](102.png)
+
 
 ### Regla de Integridad Referencial-103
 Esta regla evalúa si los registros de la entidad evaluada existen en la entidad de referencia
@@ -105,6 +126,9 @@ La sección input de la regla de integridad referencial debe contener los siguie
 
 Cabe recalcar que el ordén del nombre de las columnas del atributo Fields de la reglas y el atributo Fields de la sección input deben corresponderse, es decir, se evaluará el primer elemento de la lista del atributo Fields contra el primer elemento de la la lista del atributo Input.Fields y así correspondientemente.
 
+#### Ejemplo 
+![103](103.png)
+
 ### Regla de Formato de Fecha-104
 Esta regla evalúa que los registros evaluados correspondan con el formato definido
 
@@ -114,6 +138,9 @@ Esta regla evalúa que los registros evaluados correspondan con el formato defin
 |FORMAT_DATE|Formato de fecha con el que se evaluará el registro (Opciones: yyyy-MM-dd, yyyy/MM/dd, yyyyMMdd, yyyyMM)|Obligatorio|
 |THRESHOLD|Umbral de calidad de ejecución|Obligatorio|
 |WRITE|Valor que determina si se escribirá o no la data observada (TRUE o FALSE)|Opcional (Se toma TRUE por defecto)|
+
+#### Ejemplo 
+![104](104.png)
 
 ### Regla de Rango-105
 Esta regla evalua que el valor de los registros evaluados se encuentro dentro de un rango numérico definido
@@ -126,6 +153,9 @@ Esta regla evalua que el valor de los registros evaluados se encuentro dentro de
 |THRESHOLD|Umbral de calidad de ejecución|Obligatorio|
 |WRITE|Valor que determina si se escribirá o no la data observada (TRUE o FALSE)|Opcional (Se toma TRUE por defecto)|
 
+#### Ejemplo 
+![105](105.png)
+
 ### Regla de Catálogo-106
 Esta regla evalua que el valor de los registros evaluados sea igual que los valores definidos
 
@@ -135,6 +165,9 @@ Esta regla evalua que el valor de los registros evaluados sea igual que los valo
 |VALUES|Lista que contiene los valores permitidos|Obligatorio|
 |THRESHOLD|Umbral de calidad de ejecución|Obligatorio|
 |WRITE|Valor que determina si se escribirá o no la data observada (TRUE o FALSE)|Opcional (Se toma TRUE por defecto)|
+
+#### Ejemplo 
+![106](106.png)
 
 ### Regla de Caracteres Prohibidos-107
 Esta regla evalua que los registros evaluados no contienen el caracter que se evalúa
@@ -146,6 +179,9 @@ Esta regla evalua que los registros evaluados no contienen el caracter que se ev
 |THRESHOLD|Umbral de calidad de ejecución|Obligatorio|
 |WRITE|Valor que determina si se escribirá o no la data observada (TRUE o FALSE)|Opcional (Se toma TRUE por defecto)|
 
+#### Ejemplo 
+![107](107.png)
+
 ### Regla de Tipo de Dato(CSV)-108
 Esta regla evalua si los registros de una columna de un fichero se pueden convertir en tipo float, int, string o booleano
 
@@ -156,6 +192,9 @@ Esta regla evalua si los registros de una columna de un fichero se pueden conver
 |THRESHOLD|Umbral de calidad de ejecución|Obligatorio|
 |WRITE|Valor que determina si se escribirá o no la data observada (TRUE o FALSE)|Opcional (Se toma TRUE por defecto)|
 
+#### Ejemplo 
+![108](108.png)
+
 ### Regla de Composición-109
 Esta regla evalua que las columnas esten compuestas por otras columnas
 
@@ -165,6 +204,9 @@ Esta regla evalua que las columnas esten compuestas por otras columnas
 |VALUES|Lista que contiene las columnas que conformaran la columna final|Obligatorio|
 |THRESHOLD|Umbral de calidad de ejecución|Obligatorio|
 |WRITE|Valor que determina si se escribirá o no la data observada (TRUE o FALSE)|Opcional (Se toma TRUE por defecto)|
+
+#### Ejemplo 
+![109](109.png)
 
 ### Regla de Longitud-110
 Esta regla evalua que los registros evaluados tengan un limite inferior, superior o rango de caracteres permitidos
@@ -177,6 +219,9 @@ Esta regla evalua que los registros evaluados tengan un limite inferior, superio
 |THRESHOLD|Umbral de calidad de ejecución|Obligatorio|
 |WRITE|Valor que determina si se escribirá o no la data observada (TRUE o FALSE)|Opcional (Se toma TRUE por defecto)|
 
+#### Ejemplo 
+![110](110.png)
+
 ### Regla de Tipo de Dato(Parquet)-111
 Esta regla evalua si el schema de una columna de un fichero es de tipo solicitado
 
@@ -186,3 +231,6 @@ Esta regla evalua si el schema de una columna de un fichero es de tipo solicitad
 |DATA_TYPE|Atributo que contiene el tipo de dato que se evalua|Obligatorio|
 |THRESHOLD|Umbral de calidad de ejecución|Obligatorio|
 |WRITE|Valor que determina si se escribirá o no la data observada (TRUE o FALSE)|Opcional (Se toma TRUE por defecto)|
+
+#### Ejemplo 
+![111](111.png)
