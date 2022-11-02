@@ -277,6 +277,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
                     writeDfappend(errorTotal, error, code,rules[code].get(JsonParts.Write))
                 rulesData.append(data)
                 print("regla de caracteres tipo de dato: %s segundos" % (time.time() - t))
+
         elif code[0:3] == Rules.Composision.code:
             print("Inicializando regla de composicion")
             columnName = rules[code].get(JsonParts.Fields)
@@ -302,14 +303,14 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
 
             for field in columnName :
                 t = time.time()
-                data, errorDf = validateRange(object,field,registerAmount,entity,threshold,minRange,maxRange)
+                data, errorDf = validateLength(object,field,registerAmount,entity,threshold,minRange,maxRange)
                 errorDesc = "Longitud - " + field
                 if data[-One] > Zero:
                     errorTotal = errorDf.withColumn("error", lit(errorDesc))\
                     .withColumn("run_time",lit(runTime))
                     writeDfappend(errorTotal, error, code,rules[code].get(JsonParts.Write))
                 rulesData.append(data)
-                print("regla de rango: %s segundos" % (time.time() - t))
+                print("regla de longitud: %s segundos" % (time.time() - t))
         
         elif code[0:3] == Rules.DataTypeRule.code:
             print("Inicializando regla de tipo de dato parquet")
@@ -319,9 +320,29 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
 
             for field in columnName :
                 t = time.time()
-                data = validateDataType(object,field,registerAmount,entity,threshold, data_Type)
+                data = validateDataType(object,field,registerAmount,entity,threshold,data_Type)
                 rulesData.append(data)
-                print("regla de rango: %s segundos" % (time.time() - t))
+                print("regla de tipo de dato parquet: %s segundos" % (time.time() - t))
+
+        elif code[0:3] == Rules.NumericFormatRule.code:
+            print("Inicializando regla de tipo de formato numerico")
+            columnName = rules[code].get(JsonParts.Fields)
+            threshold = rules[code].get(JsonParts.Threshold)   
+            maxInt = rules[code].get(JsonParts.MaxInt)
+            sep = rules[code].get(JsonParts.Sep)
+            numDec = rules[code].get(JsonParts.NumDec)  
+
+            for field in columnName :
+                t = time.time()
+                data, errorDf = validateFormatNumeric(object,field,registerAmount,entity,threshold,maxInt,sep,numDec)
+                    
+                errorDesc = "Formato Numerico - " + field
+                if data[-One] > Zero:
+                    errorTotal = errorDf.withColumn("error", lit(errorDesc))\
+                    .withColumn("run_time",lit(runTime))
+                    writeDfappend(errorTotal, error, code,rules[code].get(JsonParts.Write))
+                rulesData.append(data)
+                print("regla de formato numerico: %s segundos" % (time.time() - t))
 
         else:
             pass
@@ -556,19 +577,49 @@ def validateLength(object:DataFrame,
 
 def validateDataType(object:DataFrame,
     columnName:StringType,
-    registerAmount:IntegerType,
+    registerAmount,
     entity,
     threshold,
     data_Type:StringType):
 
     dataRequirement =  f"El atributo {entity}.{columnName}, debe ser de tipo {data_Type}"
 
-    if object.schema[columnName].dataType == data_Type:
-        ratio = Zero
-        errorCount = Zero
+    if str(object.schema[columnName].dataType) == data_Type:
+        ratio = 0.0
+        errorCount = 0
         
     else:
-        ratio = OneHundred
-        errorCount = registerAmount
+        ratio = 100.0
+        errorCount = object.count()
 
     return (registerAmount, Rules.DataTypeRule.code,Rules.DataTypeRule.name,Rules.DataTypeRule.property,Rules.DataTypeRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement, columnName, ratio, errorCount)
+
+def validateFormatNumeric(object:DataFrame,
+    columnName:StringType,
+    registerAmount:IntegerType,
+    entity,
+    threshold,
+    maxInt=True,
+    sep:StringType='.',
+    numDec=True):
+
+    dataRequirement =  f"El atributo {entity}.{columnName}, debe ser tener el siguiente formato numerico {maxInt} {sep} {numDec}"
+
+    if(str(object.schema[columnName].dataType)!='StringType'):
+        object=object.withColumn(columnName,col(columnName).cast('string'))
+
+    if(sep == '.'):
+        sep = "\\"+sep
+
+    errorDf = object.filter(regexp_replace(col(columnName),sep, "")==col(columnName))
+
+    if(maxInt!=True):
+        errorDf=errorDf.union(object.filter(length(split(col(columnName),sep).getItem(0))>maxInt))
+
+    if(numDec!=True):
+        errorDf=errorDf.union(object.filter(length(split(col(columnName),sep).getItem(1))!=numDec))
+
+    errorCount = errorDf.count()
+    ratio = (One - errorCount/registerAmount) * OneHundred
+
+    return (registerAmount, Rules.NumericFormatRule.code,Rules.NumericFormatRule.name,Rules.NumericFormatRule.property,Rules.NumericFormatRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement, columnName, ratio, errorCount), errorDf

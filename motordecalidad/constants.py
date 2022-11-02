@@ -45,6 +45,10 @@ class Rules:
         name = "Exactitud"
         property = "Exactitud de Formato"
         code = "111"
+    class NumericFormatRule:
+        name = "Exactitud"
+        property = "Exactitud de Formato"
+        code = "112"
 
 
 class JsonParts:
@@ -79,6 +83,9 @@ class JsonParts:
     DBTable = "DATABASE_TABLE"
     DBUser = "DATABASE_USER"
     DBPassword = "DATABASE_PASSWORD"
+    MaxInt = "MAX_INT"
+    Sep = "SEP"
+    NumDec = "NUM_DEC"
     TempPath = "TEMPORAL_PATH"
 
 
@@ -86,6 +93,8 @@ LeftAntiType = "leftanti"
 One = 1
 Zero = 0
 OneHundred = 100
+
+
 class Field:
     def __init__(self,colName):
         self.name = colName
