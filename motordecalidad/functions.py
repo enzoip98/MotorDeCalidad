@@ -49,33 +49,70 @@ def extractParamsFromJson(config):
 def readDf(input):
     print("inicio de lectura de informacion")
     type = input.get(JsonParts.Type)
-    spark.conf.set(input.get(JsonParts.Account),input.get(JsonParts.Key))
     if type == "csv":
+        spark.conf.set(input.get(JsonParts.Account),input.get(JsonParts.Key))
         header = input.get(JsonParts.Header)
         return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(input.get(JsonParts.Path))
     elif type == "parquet":
+        spark.conf.set(input.get(JsonParts.Account),input.get(JsonParts.Key))
         return spark.read.parquet(input.get(JsonParts.Path))
     elif type == "postgre" :
         driver = "org.postgresql.Driver"
-        database_host = JsonParts.Host
-        database_port = JsonParts.Port
-        database_name = JsonParts.DBName
-        table = JsonParts.DBTable
-        user = JsonParts.DBUser
+        database_host = input.get(JsonParts.Host)
+        database_port = input.get(JsonParts.Port)
+        database_name = input.get(JsonParts.DBName)
+        table = input.get(JsonParts.DBTable)
+        user = input.get(JsonParts.DBUser)
         password = JsonParts.DBPassword
         url = f"jdbc:postgresql://{database_host}:{database_port}/{database_name}"
         return spark.read.format("jdbc").option("driver", driver).option("url", url).option("dbtable", table).option("user", user).option("password", password).load()
     elif type == "mysql" : 
         driver = "org.mariadb.jdbc.Driver"
-        database_host = JsonParts.Host
-        database_port = JsonParts.Port
-        database_name = JsonParts.DBName
-        table = JsonParts.DBTable
-        user = JsonParts.DBUser
-        password = JsonParts.DBPassword
+        database_host = input.get(JsonParts.Host)
+        database_port = input.get(JsonParts.Port)
+        database_name = input.get(JsonParts.DBName)
+        table = input.get(JsonParts.DBTable)
+        user = input.get(JsonParts.DBUser)
+        password = input.get(JsonParts.DBPassword)
         url = f"jdbc:mysql://{database_host}:{database_port}/{database_name}"
         return spark.read.format("jdbc").option("driver", driver).option("url", url).option("dbtable", table).option("user", user).option("password", password).load()
+    elif type == "teradata" :
+        driver = "cdata.jdbc.teradata.TeradataDriver"
+        database_host = input.get(JsonParts.Host)
+        database_name = input.get(JsonParts.DBName)
+        table = input.get(JsonParts.DBTable)
+        user = input.get(JsonParts.DBUser)
+        password = input.get(JsonParts.DBPassword)
+        url = f"jdbc:teradata:RTK=5246...;User={user};Password={password};Server={database_host};Database={database_name};"
+        return spark.read.format ("jdbc") \
+        .option ("driver", driver) \
+        .option ("url", url) \
+        .option ("dbtable", table) \
+        .load ()
+    elif type == "synapse" :
+        spark.conf.set(input.get(JsonParts.Account),input.get(JsonParts.Key))
+        return spark.read \
+        .format("com.databricks.spark.sqldw") \
+        .option("url",input.get(JsonParts.Host)) \
+        .option("tempDir",input.get(JsonParts.TempPath)) \
+        .option("forwardSparkAzureStorageCredentials", "true") \
+        .option("dbTable", input.get(JsonParts.DBTable)) \
+        .load()
+    elif type == "oracle" :
+        driver = "cdata.jdbc.oracleoci.OracleOCIDriver"
+        database_host = input.get(JsonParts.Host)
+        database_port = input.get(JsonParts.Port)
+        table = input.get(JsonParts.DBTable)
+        user = input.get(JsonParts.DBUser)
+        password = input.get(JsonParts.DBPassword)
+        url = f"jdbc:oracleoci:RTK=5246...;User={user};Password={password};Server={database_host};Port={database_port};"
+        return spark.read.format ( "jdbc" ) \
+        .option ( "driver" , driver) \
+        .option ( "url" , url) \
+        .option ( "dbtable" , table) \
+        .load ()
     else:
+        spark.conf.set(input.get(JsonParts.Account),input.get(JsonParts.Key))
         header = input.get(JsonParts.Header)
         return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(input.get(JsonParts.Path))
 
@@ -284,7 +321,6 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
             for field in columnName :
                 t = time.time()
                 data = validateDataType(object,field,registerAmount,entity,threshold,data_Type)
-                    
                 rulesData.append(data)
                 print("regla de tipo de dato parquet: %s segundos" % (time.time() - t))
 

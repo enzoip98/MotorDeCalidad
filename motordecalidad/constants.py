@@ -86,6 +86,7 @@ class JsonParts:
     MaxInt = "MAX_INT"
     Sep = "SEP"
     NumDec = "NUM_DEC"
+    TempPath = "TEMPORAL_PATH"
 
 
 LeftAntiType = "leftanti"
