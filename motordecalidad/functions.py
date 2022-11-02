@@ -240,6 +240,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
                     writeDfappend(errorTotal, error, code,rules[code].get(JsonParts.Write))
                 rulesData.append(data)
                 print("regla de caracteres tipo de dato: %s segundos" % (time.time() - t))
+
         elif code[0:3] == Rules.Composision.code:
             print("Inicializando regla de composicion")
             columnName = rules[code].get(JsonParts.Fields)
@@ -272,7 +273,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
                     .withColumn("run_time",lit(runTime))
                     writeDfappend(errorTotal, error, code,rules[code].get(JsonParts.Write))
                 rulesData.append(data)
-                print("regla de rango: %s segundos" % (time.time() - t))
+                print("regla de longitud: %s segundos" % (time.time() - t))
         
         elif code[0:3] == Rules.DataTypeRule.code:
             print("Inicializando regla de tipo de dato parquet")
@@ -285,7 +286,22 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
                 data = validateRange(object,field,registerAmount,entity,threshold, data_Type)
                     
                 rulesData.append(data)
-                print("regla de rango: %s segundos" % (time.time() - t))
+                print("regla de tipo de dato parquet: %s segundos" % (time.time() - t))
+
+        elif code[0:3] == Rules.NumericFormatRule.code:
+            print("Inicializando regla de tipo de formato numerico")
+            columnName = rules[code].get(JsonParts.Fields)
+            threshold = rules[code].get(JsonParts.Threshold)   
+            maxInt = rules[code].get(JsonParts.MaxInt)
+            sep = rules[code].get(JsonParts.Sep)
+            numDec = rules[code].get(JsonParts.NumDec)  
+
+            for field in columnName :
+                t = time.time()
+                data = validateRange(object,field,registerAmount,entity,threshold, data_Type)
+                    
+                rulesData.append(data)
+                print("regla de formato numerico: %s segundos" % (time.time() - t))
 
         else:
             pass
