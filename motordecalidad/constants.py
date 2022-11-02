@@ -92,6 +92,8 @@ LeftAntiType = "leftanti"
 One = 1
 Zero = 0
 OneHundred = 100
+
+
 class Field:
     def __init__(self,colName):
         self.name = colName
