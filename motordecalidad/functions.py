@@ -124,7 +124,7 @@ def writeDf(object:DataFrame,output):
 
 def writeDfappend(object:DataFrame,output,RuleId,Write):
     
-    if Write == False :
+    if Write == "FALSE" :
         print("Se omitio escritura")
     else:
         header:StringType = output.get(JsonParts.Header)

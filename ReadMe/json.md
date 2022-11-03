@@ -214,8 +214,8 @@ Esta regla evalua que los registros evaluados tengan un limite inferior, superio
 |Atributo|Definición|Tipo|
 | ------------- | ------------- | ------------|
 |FIELDS|Lista que contiene el nombre de los columnas que serán evaluadas|Obligatorio|
-|MIN_RANGE|Atributo que contiene el valor minimo númerico permitido (puede dejarse vacio)|Obligatorio|
-|MAX_RANGE|Atributo que contiene el valor maximo númerico permitido (puede dejarse vacio)|Obligatorio|
+|MIN_RANGE|Atributo que contiene el valor minimo númerico permitido (puede dejarse vacio)|Opcional|
+|MAX_RANGE|Atributo que contiene el valor maximo númerico permitido (puede dejarse vacio)|Opcional|
 |THRESHOLD|Umbral de calidad de ejecución|Obligatorio|
 |WRITE|Valor que determina si se escribirá o no la data observada (TRUE o FALSE)|Opcional (Se toma TRUE por defecto)|
 
