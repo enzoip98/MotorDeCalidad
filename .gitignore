@@ -5,3 +5,4 @@ MotorDeCalidad.egg-info
 build/lib/motordecalidad/constants.py
 build/lib/motordecalidad/constants.py
 tests
+.vscode/settings.json
