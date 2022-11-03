@@ -1,8 +1,7 @@
 import json
 from typing import List
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import *
-from pyspark.sql.types import StringType, IntegerType
+from pyspark.sql.functions import lit, length, split, regexp_replace, concat_ws, to_date
 from motordecalidad.constants import *
 import datetime
 import time
@@ -31,13 +30,13 @@ def extractParamsFromJson(config):
     data = json.load(file)
     input = data.get(JsonParts.Input)
     output = data.get(JsonParts.Output)
-    country:StringType = input.get(JsonParts.Country)
-    project:StringType = input.get(JsonParts.Project)
-    entity:StringType = input.get(JsonParts.Entity)
-    domain: StringType = input.get(JsonParts.Domain)
-    subDomain: StringType = input.get(JsonParts.SubDomain)
-    segment: StringType = input.get(JsonParts.Segment)
-    area: StringType = input.get(JsonParts.Area)
+    country:str = input.get(JsonParts.Country)
+    project:str = input.get(JsonParts.Project)
+    entity:str = input.get(JsonParts.Entity)
+    domain: str = input.get(JsonParts.Domain)
+    subDomain: str = input.get(JsonParts.SubDomain)
+    segment: str = input.get(JsonParts.Segment)
+    area: str = input.get(JsonParts.Area)
     error = data.get(JsonParts.Error)
 
     entityDf = readDf(input)
@@ -117,7 +116,7 @@ def readDf(input):
         return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(input.get(JsonParts.Path))
 
 def writeDf(object:DataFrame,output):
-    header:StringType = output.get(JsonParts.Header)
+    header:bool = output.get(JsonParts.Header)
     spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
     object.coalesce(One).write.mode("overwrite").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path)))
     print("Se escribio en el blob")
@@ -127,13 +126,13 @@ def writeDfappend(object:DataFrame,output,RuleId,Write):
     if Write == "FALSE" :
         print("Se omitio escritura")
     else:
-        header:StringType = output.get(JsonParts.Header)
+        header:bool = output.get(JsonParts.Header)
         spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
         object.coalesce(One).write.mode("append").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path))+ RuleId)
         print("Se escribio en el blob")
 
 #Function that validate rules going through the defined options
-def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity: StringType, project:StringType,country,domain,subDomain,segment,area,error):
+def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, project:str,country: str,domain: str,subDomain: str,segment: str,area: str,error):
     runTime = datetime.datetime.now()
 
     rulesData:List = []
@@ -142,7 +141,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
             print("Inicializando reglas de Nulos")
             data:List = []
             columns = rules[code].get(JsonParts.Fields)
-            threshold = rules[code].get(JsonParts.Threshold)
+            threshold:int = rules[code].get(JsonParts.Threshold)
             for field in columns:
                 t = time.time()
                 data, errorDf = validateNull(object,field,registerAmount,entity,threshold)
@@ -158,7 +157,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
             print("Inicializando reglas de Duplicidad")
             t = time.time()
             testColumn = rules[code].get(JsonParts.Fields)
-            threshold = rules[code].get(JsonParts.Threshold)
+            threshold:int = rules[code].get(JsonParts.Threshold)
             data, errorDf = validateDuplicates(object,testColumn,registerAmount,entity,threshold)
             errorDesc = "Duplicidad - " + str(testColumn)
             if data[-One] > 0 :
@@ -175,7 +174,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
             testColumn = rules[code].get(JsonParts.Fields)
             referenceColumn = referalData.get(JsonParts.Fields)
             referenceEntity = referalData.get(JsonParts.Entity)
-            threshold = rules[code].get(JsonParts.Threshold)
+            threshold:int = rules[code].get(JsonParts.Threshold)
             data, errorDf = validateReferentialIntegrity(object,referalData, testColumn, referenceColumn,registerAmount,entity,referenceEntity,threshold)
             errorDesc = "Integridad referencial - " + str(testColumn) + " - "\
             + str(referenceColumn) + " - " + str(referalData)
@@ -192,7 +191,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
             print("Inicializando regla de formato")
             columnName = rules[code].get(JsonParts.Fields)
             formatDate = rules[code].get(JsonParts.FormatDate)
-            threshold = rules[code].get(JsonParts.Threshold)
+            threshold:int = rules[code].get(JsonParts.Threshold)
             for field in columnName:
                 t = time.time()
                 if formatDate in PermitedFormatDate:
@@ -214,7 +213,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
             print("Inicializando regla de catálogo")
             columnName = rules[code].get(JsonParts.Fields)
             listValues = rules[code].get(JsonParts.Values)
-            threshold = rules[code].get(JsonParts.Threshold)
+            threshold:int = rules[code].get(JsonParts.Threshold)
             for field in columnName :
                 t = time.time()
                 data, errorDf = validateCatalog(object,field,listValues,registerAmount,entity,threshold)
@@ -229,7 +228,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
         elif code[0:3] == Rules.RangeRule.code:
             print("Inicializando regla de rango")
             columnName = rules[code].get(JsonParts.Fields)
-            threshold = rules[code].get(JsonParts.Threshold)
+            threshold:int = rules[code].get(JsonParts.Threshold)
             minRange = rules[code].get(JsonParts.MinRange)
             maxRange = rules[code].get(JsonParts.MaxRange)
 
@@ -371,16 +370,16 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:IntegerType, entity
         )
 
 #Function that valides the amount of Null registers for certain columns of the dataframe
-def validateNull(object:DataFrame,field: StringType,registersAmount: IntegerType,entity: StringType,threshold):
+def validateNull(object:DataFrame,field: str,registersAmount: int,entity: str,threshold):
     dataRequirement = f"El atributo {entity}.{field} debe ser obligatorio (NOT NULL)."
     errorDf = object.filter(col(field).isNull())
     nullCount = object.select(field).filter(col(field).isNull()).count()
     notNullCount = registersAmount - nullCount
     ratio = (notNullCount/ registersAmount) * OneHundred
-    return (registersAmount,Rules.NullRule.code,Rules.NullRule.name,Rules.NullRule.property,Rules.NullRule.code + "/" + entity + "/" + field,threshold,dataRequirement,field,ratio,nullCount), errorDf
+    return [registersAmount,Rules.NullRule.code,Rules.NullRule.name,Rules.NullRule.property,Rules.NullRule.code + "/" + entity + "/" + field,threshold,dataRequirement,field,ratio,nullCount], errorDf
 
 #Function that valides the amount of Duplicated registers for certain columns of the dataframe
-def validateDuplicates(object:DataFrame,fields:List,registersAmount: IntegerType,entity: StringType,threshold):
+def validateDuplicates(object:DataFrame,fields:List,registersAmount: int,entity: str,threshold: int):
     fieldString = ','.join(fields)
     dataRequirement = f"Todos los identificadores {entity}.({fieldString}) deben ser distintos (PRIMARY KEY)."
     duplicates = object.groupBy(fields).count().filter(col("count") != One)
@@ -389,7 +388,7 @@ def validateDuplicates(object:DataFrame,fields:List,registersAmount: IntegerType
     uniqueRegistersAmount = registersAmount - nonUniqueRegistersAmount
     ratio = (uniqueRegistersAmount / registersAmount) * OneHundred
 
-    return (registersAmount,Rules.DuplicatedRule.code,Rules.DuplicatedRule.name,Rules.DuplicatedRule.property,Rules.DuplicatedRule.code + "/" + entity + "/" + fieldString,threshold,dataRequirement,fieldString,ratio,nonUniqueRegistersAmount), errorDf
+    return [registersAmount,Rules.DuplicatedRule.code,Rules.DuplicatedRule.name,Rules.DuplicatedRule.property,Rules.DuplicatedRule.code + "/" + entity + "/" + fieldString,threshold,dataRequirement,fieldString,ratio,nonUniqueRegistersAmount], errorDf
 
 #Function that valides the equity between certain columns of two objects
 def validateReferentialIntegrity(
@@ -397,9 +396,9 @@ def validateReferentialIntegrity(
     referalData,
     testColumn: List,
     referenceColumn: List,
-    registersAmount: IntegerType,
-    entity: StringType,
-    referenceEntity: StringType,
+    registersAmount: int,
+    entity: str,
+    referenceEntity: str,
     threshold):
     fieldString = ','.join(testColumn)
     referenceFieldString = ','.join(referenceColumn)
@@ -408,14 +407,14 @@ def validateReferentialIntegrity(
     errorDf = testDataFrame.select(testColumn).join(referenceDataFrame.select(referenceColumn).toDF(*testColumn), on = testColumn, how = LeftAntiType)
     errorCount = errorDf.count()
     ratio = (One - errorCount/registersAmount) * OneHundred
-    return (registersAmount,Rules.IntegrityRule.code,Rules.IntegrityRule.name,Rules.IntegrityRule.property,Rules.IntegrityRule.code + "/" + entity + "/" + fieldString,threshold,dataRequirement,fieldString,ratio, errorCount), errorDf
+    return [registersAmount,Rules.IntegrityRule.code,Rules.IntegrityRule.name,Rules.IntegrityRule.property,Rules.IntegrityRule.code + "/" + entity + "/" + fieldString,threshold,dataRequirement,fieldString,ratio, errorCount], errorDf
 
 
 def validateFormatDate(object:DataFrame,
-    formatDate:StringType,
-    columnName:StringType,
-    registerAmount:IntegerType,
-    entity:StringType,  
+    formatDate:str,
+    columnName:str,
+    registerAmount:int,
+    entity:str,  
     threshold):
     dataRequirement = f"El atributo {entity}.{columnName} debe tener el formato {formatDate}."
     spark.sql("set spark.sql.legacy.timeParserPolicy=LEGACY")
@@ -423,15 +422,15 @@ def validateFormatDate(object:DataFrame,
     .filter(col("output").isNull()).drop("output")
     errorCount = errorDf.count()
     ratio = (One - errorCount/registerAmount) * OneHundred
-    return (registerAmount,Rules.FormatDate.code,Rules.FormatDate.name + " - " + formatDate,Rules.FormatDate.property,Rules.FormatDate.code + "/" + entity + "/" + columnName,threshold,dataRequirement,columnName,ratio, errorCount), errorDf
+    return [registerAmount,Rules.FormatDate.code,Rules.FormatDate.name + " - " + formatDate,Rules.FormatDate.property,Rules.FormatDate.code + "/" + entity + "/" + columnName,threshold,dataRequirement,columnName,ratio, errorCount], errorDf
 
 def validateRange(object:DataFrame,
-    columnName:StringType,
-    registerAmount:IntegerType,
-    entity,
-    threshold,
-    minRange:float = None,
-    maxRange:float = None,
+    columnName:str,
+    registerAmount:int,
+    entity:str,
+    threshold:int,
+    minRange = None,
+    maxRange = None,
     includeLimitRight:bool = True,
     includeLimitLeft:bool = True,
     inclusive:bool = True,):
@@ -451,7 +450,7 @@ def validateRange(object:DataFrame,
     errorCount = errorDf.count()
     ratio = (One - errorCount/registerAmount) * OneHundred
 
-    return (registerAmount,Rules.RangeRule.code,Rules.RangeRule.name,Rules.RangeRule.property,Rules.RangeRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement, columnName, ratio, errorCount), errorDf
+    return [registerAmount,Rules.RangeRule.code,Rules.RangeRule.name,Rules.RangeRule.property,Rules.RangeRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement, columnName, ratio, errorCount], errorDf
 
 def chooseComparisonOparator(includeLimitLeft:bool,includeLimitRight:bool,inclusive:bool):
     res=[]
@@ -481,11 +480,11 @@ def chooseComparisonOparator(includeLimitLeft:bool,includeLimitRight:bool,inclus
 
 
 def validateCatalog(object:DataFrame,
-    columnName:StringType, 
+    columnName:str, 
     listValues:list,
-    registerAmount:IntegerType,
-    entity:StringType,
-    threshold):
+    registerAmount:int,
+    entity:str,
+    threshold: int):
     fieldsString = ','.join(listValues)
     dataRequirement = f"El atributo {entity}.{columnName}, debe tomar solo los valores {fieldsString}."
     errorDf = object.filter(~col(columnName).isin(listValues))
@@ -493,15 +492,15 @@ def validateCatalog(object:DataFrame,
     errorCount = errorDf.count()
     ratio = (One - errorCount/registerAmount) * OneHundred
 
-    return (registerAmount,Rules.CatalogRule.code,Rules.CatalogRule.name,Rules.CatalogRule.property,Rules.CatalogRule.code + "/" + entity + "/" + columnName ,threshold,dataRequirement,columnName, ratio, errorCount), errorDf 
+    return [registerAmount,Rules.CatalogRule.code,Rules.CatalogRule.name,Rules.CatalogRule.property,Rules.CatalogRule.code + "/" + entity + "/" + columnName ,threshold,dataRequirement,columnName, ratio, errorCount], errorDf 
 
 
 def validateForbiddenCharacters(object:DataFrame,
-    columnName:StringType, 
+    columnName:str, 
     listValues:list,
-    registerAmount:IntegerType,
-    entity:StringType,
-    threshold):
+    registerAmount:int,
+    entity:str,
+    threshold: int):
 
     fieldsString = ','.join(listValues)
 
@@ -515,15 +514,15 @@ def validateForbiddenCharacters(object:DataFrame,
     errorCount = errorDf.count()
     ratio = (One - errorCount/registerAmount) * OneHundred
 
-    return (registerAmount, Rules.ForbiddenRule.code,Rules.ForbiddenRule.name,Rules.ForbiddenRule.property,Rules.ForbiddenRule.code + "/" + entity + "/" + columnName ,threshold,dataRequirement, columnName, ratio, errorCount), errorDf 
+    return [registerAmount, Rules.ForbiddenRule.code,Rules.ForbiddenRule.name,Rules.ForbiddenRule.property,Rules.ForbiddenRule.code + "/" + entity + "/" + columnName ,threshold,dataRequirement, columnName, ratio, errorCount], errorDf 
 
 
 def validateType(object:DataFrame,
-    data_Type:StringType,
-    columnName:StringType,
-    registerAmount:IntegerType,
-    entity:StringType,
-    threshold):
+    data_Type:str,
+    columnName:str,
+    registerAmount:int,
+    entity:str,
+    threshold: int):
 
     dataRequirement = f"El atributo {entity}.{columnName} debe ser de tipo {data_Type}."
 
@@ -533,14 +532,14 @@ def validateType(object:DataFrame,
 
     errorCount = errorDf.count()
     ratio = (One - errorCount/registerAmount) * OneHundred
-    return (registerAmount, Rules.Type.code, Rules.Type.name + " - " + data_Type, Rules.Type.property, Rules.Type.code + "/" + entity + "/" + columnName,threshold,dataRequirement,columnName,ratio, errorCount), errorDf
+    return [registerAmount, Rules.Type.code, Rules.Type.name + " - " + data_Type, Rules.Type.property, Rules.Type.code + "/" + entity + "/" + columnName,threshold,dataRequirement,columnName,ratio, errorCount], errorDf
 
 def validateComposision(object: DataFrame,
-    columnName:StringType,
+    columnName:str,
     partialColumns:list,
-    registerAmount:IntegerType,
-    entity: StringType,
-    threshold: StringType):
+    registerAmount:int,
+    entity: str,
+    threshold: int):
 
     fieldsString = ','.join(partialColumns)
     dataRequirement = f"El atributo {entity}.{columnName} en todas las tablas tiene que tener la siguiente estructura {fieldsString}"
@@ -548,15 +547,15 @@ def validateComposision(object: DataFrame,
     errorCount = errorDf.count()
     ratio = (One - errorCount/registerAmount) * OneHundred
 
-    return (registerAmount, Rules.Composision.code, Rules.Composision.name, Rules.Composision.property, Rules.Composision.code + "/" + entity + "/" + columnName,threshold,dataRequirement,columnName,ratio, errorCount), errorDf
+    return [registerAmount, Rules.Composision.code, Rules.Composision.name, Rules.Composision.property, Rules.Composision.code + "/" + entity + "/" + columnName,threshold,dataRequirement,columnName,ratio, errorCount], errorDf
 
 def validateLength(object:DataFrame,
-    columnName:StringType,
-    registerAmount:IntegerType,
+    columnName:str,
+    registerAmount:int,
     entity,
     threshold,
-    minRange:float = None,
-    maxRange:float = None,):
+    minRange = None,
+    maxRange = None,):
 
     dataRequirement =  f"El atributo {entity}.{columnName}, debe contener este numero de caracteres {minRange} y {maxRange}"
 
@@ -572,15 +571,15 @@ def validateLength(object:DataFrame,
     errorCount = errorDf.count()
     ratio = (One - errorCount/registerAmount) * OneHundred
 
-    return (registerAmount,Rules.LengthRule.code,Rules.LengthRule.name,Rules.LengthRule.property,Rules.LengthRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement, columnName, ratio, errorCount), errorDf
+    return [registerAmount,Rules.LengthRule.code,Rules.LengthRule.name,Rules.LengthRule.property,Rules.LengthRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement, columnName, ratio, errorCount], errorDf
 
 
 def validateDataType(object:DataFrame,
-    columnName:StringType,
-    registerAmount,
-    entity,
-    threshold,
-    data_Type:StringType):
+    columnName:str,
+    registerAmount:int,
+    entity:str,
+    threshold:int,
+    data_Type:str):
 
     dataRequirement =  f"El atributo {entity}.{columnName}, debe ser de tipo {data_Type}"
 
@@ -592,15 +591,15 @@ def validateDataType(object:DataFrame,
         ratio = 100.0
         errorCount = object.count()
 
-    return (registerAmount, Rules.DataTypeRule.code,Rules.DataTypeRule.name,Rules.DataTypeRule.property,Rules.DataTypeRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement, columnName, ratio, errorCount)
+    return [registerAmount, Rules.DataTypeRule.code,Rules.DataTypeRule.name,Rules.DataTypeRule.property,Rules.DataTypeRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement, columnName, ratio, errorCount]
 
 def validateFormatNumeric(object:DataFrame,
-    columnName:StringType,
-    registerAmount:IntegerType,
-    entity,
-    threshold,
+    columnName:str,
+    registerAmount:int,
+    entity:str,
+    threshold:int,
     maxInt=True,
-    sep:StringType='.',
+    sep:str='.',
     numDec=True):
 
     dataRequirement =  f"El atributo {entity}.{columnName}, debe ser tener el siguiente formato numerico {maxInt} {sep} {numDec}"
@@ -622,4 +621,4 @@ def validateFormatNumeric(object:DataFrame,
     errorCount = errorDf.count()
     ratio = (One - errorCount/registerAmount) * OneHundred
 
-    return (registerAmount, Rules.NumericFormatRule.code,Rules.NumericFormatRule.name,Rules.NumericFormatRule.property,Rules.NumericFormatRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement, columnName, ratio, errorCount), errorDf
+    return [registerAmount, Rules.NumericFormatRule.code,Rules.NumericFormatRule.name,Rules.NumericFormatRule.property,Rules.NumericFormatRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement, columnName, ratio, errorCount], errorDf
