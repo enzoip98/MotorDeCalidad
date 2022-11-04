@@ -7,7 +7,7 @@ import datetime
 import time
 import operator
 
-print("Motor de Calidad Version Beta 1.4")
+print("Motor de Calidad Version Beta 1.5")
 
 # Main function
 # @spark Variable containing spark session
