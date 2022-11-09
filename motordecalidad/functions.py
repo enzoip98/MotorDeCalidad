@@ -7,7 +7,7 @@ import datetime
 import time
 import operator
 
-print("Motor de Calidad Version Beta 1.4")
+print("Motor de Calidad Version Beta 1.5.1")
 
 # Main function
 # @spark Variable containing spark session
@@ -16,9 +16,10 @@ def startValidation(inputspark,config):
     global spark
     spark = inputspark
     print("Inicio de validacion")
-    object,output,country,project,entity,domain,subDomain,segment,area,rules,error = extractParamsFromJson(config)
-    registerAmount = object.count()
-    validationData = validateRules(object,rules,registerAmount,entity,project,country,domain,subDomain,segment,area,error)
+    object,output,country,project,entity,domain,subDomain,segment,area,rules,error,filtered = extractParamsFromJson(config)
+    filteredObject = applyFilter(object,filtered)
+    registerAmount = filteredObject.count()
+    validationData = validateRules(filteredObject,rules,registerAmount,entity,project,country,domain,subDomain,segment,area,error)
     writeDf(validationData, output)
     return validationData
 
@@ -38,11 +39,12 @@ def extractParamsFromJson(config):
     segment: str = input.get(JsonParts.Segment)
     area: str = input.get(JsonParts.Area)
     error = data.get(JsonParts.Error)
+    filtered = data.get(JsonParts.Filter)
 
     entityDf = readDf(input)
     rules = data.get(JsonParts.Rules)
     print("Extraccion de JSON completada")
-    return entityDf,output,country,project,entity,domain,subDomain,segment,area,rules,error
+    return entityDf,output,country,project,entity,domain,subDomain,segment,area,rules,error,filtered
 
 # Function that reads the CSV file as a Dataframe
 def readDf(input):
@@ -131,6 +133,15 @@ def writeDfappend(object:DataFrame,output,RuleId,Write):
         object.coalesce(One).write.mode("append").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path))+ RuleId)
         print("Se escribio en el blob")
 
+def applyFilter(object:DataFrame, filtered) :
+    try:
+        filteredColumn = filtered.get(JsonParts.Fields)
+        filterValue = filtered.get(JsonParts.Values)
+        print("Extracción de parametros de filtrado finalizada")
+        return object.filter(col(filteredColumn)==filterValue)
+    except:
+        print("Se omite filtro")
+        return object
 #Function that validate rules going through the defined options
 def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, project:str,country: str,domain: str,subDomain: str,segment: str,area: str,error):
     runTime = datetime.datetime.now()
