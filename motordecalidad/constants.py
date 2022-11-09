@@ -87,6 +87,7 @@ class JsonParts:
     Sep = "SEP"
     NumDec = "NUM_DEC"
     TempPath = "TEMPORAL_PATH"
+    Filter = "FILTER"
 
 
 LeftAntiType = "leftanti"
