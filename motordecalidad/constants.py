@@ -1,6 +1,8 @@
 ##Constants
 from pyspark.sql.functions import col
 class Rules:
+    class ExistanceRule:
+        code = "100"
     class NullRule:
         name = "Completitud"
         property = "Completitud de Registro"
