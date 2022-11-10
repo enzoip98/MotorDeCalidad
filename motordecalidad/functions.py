@@ -148,6 +148,13 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
 
     rulesData:List = []
     for code in rules:
+        if code[0:3] == Rules.ExistanceRule.code:
+            print("Inicializando regla de existencia")
+            columns = rules[code].get(JsonParts.Fields)
+            for field in columns:
+                t = time.time()
+                validateExistance(object,field)
+                print("regla de existencia: %s segundos" % (time.time() - t))
         if code[0:3] == Rules.NullRule.code:
             print("Inicializando reglas de Nulos")
             data:List = []
@@ -206,7 +213,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
             for field in columnName:
                 t = time.time()
                 if formatDate in PermitedFormatDate:
-                    data, errorDf = validateFormatDate(object, formatDate, field, registerAmount,entity,threshold)
+                    data, errorDf = validateFormatDate(object, formatDate, field,entity,threshold)
                     errorDesc = "Formato - " + str(field)
                     if data[-One] > Zero :
                         errorTotal = errorDf.withColumn("error", lit(errorDesc))\
@@ -380,6 +387,12 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
         FailRate.value(lit(OneHundred)-SucessRate.column)
         )
 
+def validateExistance(object:DataFrame, field:str):
+    if field in object.columns :
+        return
+    else:
+        print(f"El dataframe no contiene la columna {field}")
+        exit()
 #Function that valides the amount of Null registers for certain columns of the dataframe
 def validateNull(object:DataFrame,field: str,registersAmount: int,entity: str,threshold):
     dataRequirement = f"El atributo {entity}.{field} debe ser obligatorio (NOT NULL)."
@@ -424,12 +437,13 @@ def validateReferentialIntegrity(
 def validateFormatDate(object:DataFrame,
     formatDate:str,
     columnName:str,
-    registerAmount:int,
     entity:str,  
     threshold):
+    notNullDf = object.filter(col(columnName).isNotNull())
+    registerAmount = notNullDf.count()
     dataRequirement = f"El atributo {entity}.{columnName} debe tener el formato {formatDate}."
     spark.sql("set spark.sql.legacy.timeParserPolicy=LEGACY")
-    errorDf = object.withColumn("output", to_date(col(columnName).cast('string'), formatDate))\
+    errorDf = notNullDf.withColumn("output", to_date(col(columnName).cast('string'), formatDate))\
     .filter(col("output").isNull()).drop("output")
     errorCount = errorDf.count()
     ratio = (One - errorCount/registerAmount) * OneHundred
