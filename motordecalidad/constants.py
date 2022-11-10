@@ -50,8 +50,11 @@ class Rules:
     class NumericFormatRule:
         name = "Exactitud"
         property = "Exactitud de Formato"
-        code = "112"
-
+        code = "112" 
+    class OperationRule:
+        name = "Exactitud"
+        property = "Exactitud de Resultado"
+        code = "113"
 
 class JsonParts:
     Input = "INPUT"
@@ -90,6 +93,9 @@ class JsonParts:
     NumDec = "NUM_DEC"
     TempPath = "TEMPORAL_PATH"
     Filter = "FILTER"
+    Input_val = "INPUT_VAL"
+    Error_val = "ERROR_VAL"
+    Operator = "OPERATOR"
 
 
 LeftAntiType = "leftanti"

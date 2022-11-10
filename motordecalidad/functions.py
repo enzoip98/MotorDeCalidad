@@ -1,11 +1,12 @@
 import json
 from typing import List
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import lit, length, split, regexp_replace, concat_ws, to_date
+from pyspark.sql.functions import *
 from motordecalidad.constants import *
 import datetime
 import time
 import operator
+
 
 print("Motor de Calidad Version Beta 1.5.1")
 
@@ -128,6 +129,7 @@ def writeDfappend(object:DataFrame,output,RuleId,Write):
     if Write == "FALSE" :
         print("Se omitio escritura")
     else:
+        print(output)
         header:bool = output.get(JsonParts.Header)
         spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
         object.coalesce(One).write.mode("append").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path))+ RuleId)
@@ -360,6 +362,26 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
                     writeDfappend(errorTotal, error, code,rules[code].get(JsonParts.Write))
                 rulesData.append(data)
                 print("regla de formato numerico: %s segundos" % (time.time() - t))
+
+        elif code[0:3] == Rules.OperationRule.code:
+            print("Inicializando regla de tipo de operacion numerica")
+            columnName = rules[code].get(JsonParts.Fields)
+            threshold = rules[code].get(JsonParts.Threshold)   
+            operator = rules[code].get(JsonParts.Operator)
+            input_val = rules[code].get(JsonParts.Input_val)
+            error_val = rules[code].get(JsonParts.Error_val)  
+            
+            for field in columnName :
+                t = time.time()
+                data, errorDf = validateOperation(object,field,registerAmount,entity,threshold,operator,input_val,error_val)
+                    
+                errorDesc = "Operacion Numerica - " + field
+                if data[-One] > Zero:
+                    errorTotal = errorDf.withColumn("error", lit(errorDesc))\
+                    .withColumn("run_time",lit(runTime))
+                    writeDfappend(errorTotal, error, code,rules[code].get(JsonParts.Write))
+                rulesData.append(data)
+                print("regla de operacion numerica: %s segundos" % (time.time() - t))
 
         else:
             pass
@@ -647,3 +669,140 @@ def validateFormatNumeric(object:DataFrame,
     ratio = (One - errorCount/registerAmount) * OneHundred
 
     return [registerAmount, Rules.NumericFormatRule.code,Rules.NumericFormatRule.name,Rules.NumericFormatRule.property,Rules.NumericFormatRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement, columnName, ratio, errorCount], errorDf
+
+
+def validateOperation(object:DataFrame,
+                      columnName:StringType,
+                      registerAmount:int,
+                      entity:str,
+                      threshold:int,
+                      operator:StringType,
+                      input:StringType,
+                      error:float=0):
+
+    cols=object.columns
+    res=operation(object,input)
+    res.show()
+
+    dataRequirement =  f"El atributo {entity}.{columnName}, no cumple con la ecuacion {columnName}, {operator}, {input}"
+
+    if (operator=='=='):
+        err=abs(1-col(columnName)/col(res.columns[-1]))
+        errorDf=res.filter(err>error)
+    else:
+        func=chooseOper(res[res.columns[-1]],operator)
+        errorDf=res.filter(func(col(columnName),res[res.columns[-1]]))
+
+    errorCount = errorDf.count()
+    ratio = (One - errorCount/registerAmount) * OneHundred
+
+    return [registerAmount, Rules.OperationRule.code,Rules.OperationRule.name,Rules.OperationRule.property,Rules.OperationRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement, columnName, ratio, errorCount], errorDf.select(cols)
+ 
+def operation(object:DataFrame,
+                      input:StringType):
+    originalColumns=object.columns
+    aux= input.split()
+    if(len(aux)==3):
+        try:
+            num1=float(aux[0])
+            oper=chooseOper(lit(num1),aux[1])
+            try:
+                num2=float(aux[2])
+                res=oper(lit(num2))
+            except:
+                res=oper(object[aux[2]])
+        except:
+            oper=chooseOper(object[aux[0]],aux[1])
+            try:
+                num2=float(aux[2])
+                res=oper(lit(num2))
+            except:
+                res=oper(object[aux[2]])
+           
+        return object.withColumn('ss',res)
+    try:
+        f=0
+        while(True):
+           
+            par1=aux.index('(')
+            par2=aux.index(')')
+            newInput=' '.join(aux[par1+1:par2])
+            res=operation(object,newInput)
+            newInput=' '.join(aux[:par1])+' VAL'+str(f)+' '+' '.join(aux[par2+1:])
+            originalColumns.append('VAL'+str(f))
+            object=res.withColumnRenamed(res.columns[-1],('VAL'+str(f)))
+            object=object.select(originalColumns)
+            f+=1
+            aux=newInput.split()
+           
+    except:
+        try:
+            f=0
+            while(True):
+                mul1=aux.index('*')
+                newInput=' '.join(aux[mul1-1:mul1+2])
+                res=operation(object,newInput)
+                newInput=' '.join(aux[:mul1-1])+' MUL'+str(f)+' '+' '.join(aux[mul1+2:])
+                object=res.withColumnRenamed('ss',('MUL'+str(f)))
+                f+=1
+                aux=newInput.split()
+        except:
+            try:
+                f=0
+                while(True):
+                    div1=aux.index('/')
+                    newInput=' '.join(aux[div1-1:div1+2])
+                    res=operation(object,newInput)
+                    newInput=' '.join(aux[:div1-1])+' DIV'+str(f)+' '+' '.join(aux[div1+2:])
+                    object=res.withColumnRenamed('ss',('DIV'+str(f)))
+                    f+=1
+                    aux=newInput.split()
+            except:
+                try:
+                    f=0
+                    while(True):
+                        res1=aux.index('-')
+                        newInput=' '.join(aux[res1-1:res1+2])
+                        res=operation(object,newInput)
+                        newInput=' '.join(aux[:res1-1])+' RES'+str(f)+' '+' '.join(aux[res1+2:])
+                        object=res.withColumnRenamed('ss',('RES'+str(f)))
+                        f+=1
+                        aux=newInput.split()
+                except:
+                    try:
+                        f=0
+                        while(True):
+                            su1=aux.index('+')
+                           
+                            newInput=' '.join(aux[su1-1:su1+2])
+                            res=operation(object,newInput)
+                            newInput=' '.join(aux[:su1-1])+' SUM'+str(f)+' '+' '.join(aux[su1+2:])
+                            object=res.withColumnRenamed('ss',('SUM'+str(f)))
+                            f+=1
+                            aux=newInput.split()
+                    except:
+                        return object
+
+
+
+def chooseOper(col,op:StringType):
+    if op=='+':
+        return col.__add__
+    if op=='-':
+        return col.__sub__
+    if op=='*':
+        return col.__mul__
+    if op=='/':
+        return col.__div__
+    if op=='==':
+        return operator.ne
+    if op=='!=':
+        return operator.eq
+    if op=='<=':
+        return operator.gt
+    if op=='>=':
+        return operator.lt
+    if op=='>':
+        return operator.le
+    if op=='<':
+        return operator.ge
