@@ -1,3 +1,4 @@
+from sys import exit
 import json
 from typing import List
 from pyspark.sql import DataFrame
@@ -153,10 +154,9 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
         if code[0:3] == Rules.ExistanceRule.code:
             print("Inicializando regla de existencia")
             columns = rules[code].get(JsonParts.Fields)
-            for field in columns:
-                t = time.time()
-                validateExistance(object,field)
-                print("regla de existencia: %s segundos" % (time.time() - t))
+            t = time.time()
+            validateExistance(object,columns)
+            print("regla de existencia: %s segundos" % (time.time() - t))
         if code[0:3] == Rules.NullRule.code:
             print("Inicializando reglas de Nulos")
             data:List = []
@@ -409,12 +409,16 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
         FailRate.value(lit(OneHundred)-SucessRate.column)
         )
 
-def validateExistance(object:DataFrame, field:str):
-    if field in object.columns :
+def validateExistance(object:DataFrame, fields:list):
+
+    error_list = list(set(fields) - set(object.columns))
+
+    if len(error_list) == 0 :
         return
     else:
-        print(f"El dataframe no contiene la columna {field}")
+        print(f"El dataframe no contiene las columnas {error_list}")
         exit()
+
 #Function that valides the amount of Null registers for certain columns of the dataframe
 def validateNull(object:DataFrame,field: str,registersAmount: int,entity: str,threshold):
     dataRequirement = f"El atributo {entity}.{field} debe ser obligatorio (NOT NULL)."
