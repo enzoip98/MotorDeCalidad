@@ -129,7 +129,6 @@ def writeDfappend(object:DataFrame,output,RuleId,Write):
     if Write == "FALSE" :
         print("Se omitio escritura")
     else:
-        print(output)
         header:bool = output.get(JsonParts.Header)
         spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
         object.coalesce(One).write.mode("append").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path))+ RuleId)
@@ -153,25 +152,36 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
         if code[0:3] == Rules.ExistanceRule.code:
             print("Inicializando regla de existencia")
             columns = rules[code].get(JsonParts.Fields)
-            for field in columns:
-                t = time.time()
-                validateExistance(object,field)
-                print("regla de existencia: %s segundos" % (time.time() - t))
+            t = time.time()
+            validateExistance(object,columns)
+            print("regla de existencia: %s segundos" % (time.time() - t))
         if code[0:3] == Rules.NullRule.code:
             print("Inicializando reglas de Nulos")
             data:List = []
             columns = rules[code].get(JsonParts.Fields)
             threshold:int = rules[code].get(JsonParts.Threshold)
-            for field in columns:
-                t = time.time()
-                data, errorDf = validateNull(object,field,registerAmount,entity,threshold)
-                errorDesc = "Nulos - " + str(field)
-                if data[-One] > Zero :
-                    errorTotal = errorDf.withColumn("error", lit(errorDesc))\
-                    .withColumn("run_time", lit(runTime))
-                    writeDfappend(errorTotal, error, code,rules[code].get(JsonParts.Write))
-                rulesData.append(data)
-                print("regla de nulos: %s segundos" % (time.time() - t))
+            if columns[0] == "*" :
+                for field in object.columns:
+                    t = time.time()
+                    data, errorDf = validateNull(object,field,registerAmount,entity,threshold)
+                    errorDesc = "Nulos - " + str(field)
+                    if data[-One] > Zero :
+                        errorTotal = errorDf.withColumn("error", lit(errorDesc))\
+                        .withColumn("run_time", lit(runTime))
+                        writeDfappend(errorTotal, error, code,rules[code].get(JsonParts.Write))
+                    rulesData.append(data)
+                    print("regla de nulos: %s segundos" % (time.time() - t))
+            else:
+                for field in columns:
+                    t = time.time()
+                    data, errorDf = validateNull(object,field,registerAmount,entity,threshold)
+                    errorDesc = "Nulos - " + str(field)
+                    if data[-One] > Zero :
+                        errorTotal = errorDf.withColumn("error", lit(errorDesc))\
+                        .withColumn("run_time", lit(runTime))
+                        writeDfappend(errorTotal, error, code,rules[code].get(JsonParts.Write))
+                    rulesData.append(data)
+                    print("regla de nulos: %s segundos" % (time.time() - t))
 
         elif code[0:3] == Rules.DuplicatedRule.code:
             print("Inicializando reglas de Duplicidad")
@@ -409,12 +419,13 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
         FailRate.value(lit(OneHundred)-SucessRate.column)
         )
 
-def validateExistance(object:DataFrame, field:str):
-    if field in object.columns :
+def validateExistance(object:DataFrame, field:list):
+    error_list = list(set(field) - set(object.columns))
+    if len(error_list) == Zero :
         return
     else:
-        print(f"El dataframe no contiene la columna {field}")
-        exit()
+        raise Exception(f"Falta columna o la columna tiene un nomber distinto. Por favor chequear que el input tiene un esquema válido: {','.join(error_list)}")
+
 #Function that valides the amount of Null registers for certain columns of the dataframe
 def validateNull(object:DataFrame,field: str,registersAmount: int,entity: str,threshold):
     dataRequirement = f"El atributo {entity}.{field} debe ser obligatorio (NOT NULL)."
