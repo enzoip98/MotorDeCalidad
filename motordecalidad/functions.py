@@ -24,6 +24,14 @@ def startValidation(inputspark,config):
     writeDf(validationData, output)
     return validationData
 
+def get_dbutils(spark):
+        try:
+            from pyspark.dbutils import DBUtils
+            dbutils = DBUtils(spark)
+        except ImportError:
+            import IPython
+            dbutils = IPython.get_ipython().user_ns["dbutils"]
+        return dbutils
 
 # Function that extracts the information from de JSON File
 # @config Variable that contains the JSON route
@@ -55,7 +63,8 @@ def readDf(input):
     if type == "csv":
         spark.conf.set(input.get(JsonParts.Account),input.get(JsonParts.Key))
         header = input.get(JsonParts.Header)
-        return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(input.get(JsonParts.Path))
+        dbutils = get_dbutils(spark)
+        return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(str(input.get(JsonParts.Path)).format(dbutils.widgets.get('country'),dbutils.widgets.get('year'),dbutils.widgets.get('month')))
     elif type == "parquet":
         spark.conf.set(input.get(JsonParts.Account),input.get(JsonParts.Key))
         return spark.read.parquet(input.get(JsonParts.Path))
@@ -123,20 +132,45 @@ def readDf(input):
         return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(input.get(JsonParts.Path))
 
 def writeDf(object:DataFrame,output):
-    header:bool = output.get(JsonParts.Header)
-    spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
-    object.coalesce(One).write.mode("overwrite").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path)))
+    type = output.get(JsonParts.Type)
+    if type == "local":
+        header:bool = output.get(JsonParts.Header)
+        object.coalesce(One).write.mode("overwrite").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).csv(str(output.get(JsonParts.Path)))  
+
+    elif type == "csv":
+        spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
+        dbutils = get_dbutils(spark)
+        header:bool = output.get(JsonParts.Header)
+        object.coalesce(One).write.mode("overwrite").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path).format(dbutils.widgets.get('country'),dbutils.widgets.get('year'),dbutils.widgets.get('month'))))
+    else:
+        spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
+        header:bool = output.get(JsonParts.Header)
+        object.coalesce(One).write.mode("overwrite").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path)))
     print("Se escribio en el blob")
 
-def writeDfappend(object:DataFrame,output,RuleId,Write):
-    
-    if Write == "FALSE" :
-        print("Se omitio escritura")
-    else:
+def writeDfappend(object:DataFrame,output,Write):
+    type = output.get(JsonParts.Type)
+    if type == "local":
         header:bool = output.get(JsonParts.Header)
-        spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
-        object.coalesce(One).write.mode("append").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path)))
-        print("Se escribio en el blob")
+        object.coalesce(One).write.mode("append").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).csv(str(output.get(JsonParts.Path))) 
+    elif type == "csv":
+
+        if Write == "FALSE" :
+            print("Se omitio escritura")
+        else:
+            spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
+            dbutils = get_dbutils(spark)
+            header:bool = output.get(JsonParts.Header)
+            object.coalesce(One).write.mode("append").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path).format(dbutils.widgets.get('country'),dbutils.widgets.get('year'),dbutils.widgets.get('month'))))
+            print("Se escribio en el blob")     
+    else:
+        if Write == "FALSE" :
+            print("Se omitio escritura")
+        else:
+            spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
+            header:bool = output.get(JsonParts.Header)
+            object.coalesce(One).write.mode("append").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path)))
+            print("Se escribio en el blob")
 
 def applyFilter(object:DataFrame, filtered) :
     try:
@@ -172,7 +206,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
                     if data[-One] > Zero :
                         errorTotal = errorDf.withColumn("error", lit(errorDesc))\
                         .withColumn("run_time", lit(runTime))
-                        writeDfappend(errorTotal, error, code,write)
+                        writeDfappend(errorTotal, error,write)
                     rulesData.append(data)
                     print("regla de nulos: %s segundos" % (time.time() - t))
             else:
@@ -183,7 +217,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
                     if data[-One] > Zero :
                         errorTotal = errorDf.withColumn("error", lit(errorDesc))\
                         .withColumn("run_time", lit(runTime))
-                        writeDfappend(errorTotal, error, code,write)
+                        writeDfappend(errorTotal, error,write)
                     rulesData.append(data)
                     print("regla de nulos: %s segundos" % (time.time() - t))
 
@@ -197,7 +231,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
             if data[-One] > 0 :
                 errorTotal = errorDf.withColumn("error", lit(errorDesc))\
                 .withColumn("run_time", lit(runTime))
-                writeDfappend(errorTotal,error, code,write)
+                writeDfappend(errorTotal,error,write)
             rulesData.append(data)
             print("regla de duplicados: %s segundos" % (time.time() - t))
 
@@ -234,7 +268,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
                     if data[-One] > Zero :
                         errorTotal = errorDf.withColumn("error", lit(errorDesc))\
                         .withColumn("run_time", lit(runTime))
-                        writeDfappend(errorTotal, error, code, write)
+                        writeDfappend(errorTotal, error, write)
                     rulesData.append(data) 
                     print("regla de formato: %s segundos" % (time.time() - t))
                 else:
@@ -255,7 +289,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
                 if data[-One] > Zero:
                     errorTotal = errorDf.withColumn("error", lit(errorDesc))\
                     .withColumn("run_time",lit(runTime))
-                    writeDfappend(errorTotal, error, code, write)
+                    writeDfappend(errorTotal, error, write)
                 rulesData.append(data)
                 print("regla de catalogo: %s segundos" % (time.time() - t))
         
@@ -273,7 +307,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
                 if data[-One] > Zero:
                     errorTotal = errorDf.withColumn("error", lit(errorDesc))\
                     .withColumn("run_time",lit(runTime))
-                    writeDfappend(errorTotal, error, code, write)
+                    writeDfappend(errorTotal, error, write)
                 rulesData.append(data)
                 print("regla de rango: %s segundos" % (time.time() - t))
         
@@ -290,7 +324,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
                 if data[-One] > Zero:
                     errorTotal = errorDf.withColumn("error", lit(errorDesc))\
                     .withColumn("run_time",lit(runTime))
-                    writeDfappend(errorTotal, error, code, write)
+                    writeDfappend(errorTotal, error, write)
                 rulesData.append(data)
                 print("regla de caracteres prohibidos: %s segundos" % (time.time() - t))
 
@@ -307,7 +341,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
                 if data[-One] > Zero:
                     errorTotal = errorDf.withColumn("error", lit(errorDesc))\
                     .withColumn("run_time",lit(runTime))
-                    writeDfappend(errorTotal, error, code, write)
+                    writeDfappend(errorTotal, error, write)
                 rulesData.append(data)
                 print("regla de caracteres tipo de dato: %s segundos" % (time.time() - t))
 
@@ -323,7 +357,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
                 if data[-One] > Zero:
                     errorTotal = errorDf.withColumn("error", lit(errorDesc))\
                     .withColumn("run_time",lit(runTime))
-                    writeDfappend(errorTotal, error, code, write)
+                    writeDfappend(errorTotal, error, write)
                 rulesData.append(data)
                 print("regla de caracteres composicion: %s segundos" % (time.time() - t))
 
@@ -341,7 +375,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
                 if data[-One] > Zero:
                     errorTotal = errorDf.withColumn("error", lit(errorDesc))\
                     .withColumn("run_time",lit(runTime))
-                    writeDfappend(errorTotal, error, code, write)
+                    writeDfappend(errorTotal, error, write)
                 rulesData.append(data)
                 print("regla de longitud: %s segundos" % (time.time() - t))
         
@@ -373,7 +407,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
                 if data[-One] > Zero:
                     errorTotal = errorDf.withColumn("error", lit(errorDesc))\
                     .withColumn("run_time",lit(runTime))
-                    writeDfappend(errorTotal, error, code, write)
+                    writeDfappend(errorTotal, error, write)
                 rulesData.append(data)
                 print("regla de formato numerico: %s segundos" % (time.time() - t))
 
@@ -393,7 +427,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
                 if data[-One] > Zero:
                     errorTotal = errorDf.withColumn("error", lit(errorDesc))\
                     .withColumn("run_time",lit(runTime))
-                    writeDfappend(errorTotal, error, code, write)
+                    writeDfappend(errorTotal, error, write)
                 rulesData.append(data)
                 print("regla de operacion numerica: %s segundos" % (time.time() - t))
 
@@ -483,7 +517,10 @@ def validateFormatDate(object:DataFrame,
     errorDf = notNullDf.withColumn("output", to_date(col(columnName).cast('string'), formatDate))\
     .filter(col("output").isNull()).drop("output")
     errorCount = errorDf.count()
-    ratio = (One - errorCount/registerAmount) * OneHundred
+    try:
+        ratio = (One - errorCount/registerAmount) * OneHundred
+    except:
+        ratio = 100.0
     return [registerAmount,Rules.FormatDate.code,Rules.FormatDate.name + " - " + formatDate,Rules.FormatDate.property,Rules.FormatDate.code + "/" + entity + "/" + columnName,threshold,dataRequirement,columnName,ratio, errorCount], errorDf
 
 def validateRange(object:DataFrame,
