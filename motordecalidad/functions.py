@@ -15,7 +15,9 @@ print("Motor de Calidad Version Release 1.0")
 # @config Route with the json that contains de information of the execution
 def startValidation(inputspark,config):
     global spark
+    global dbutils
     spark = inputspark
+    dbutils = get_dbutils(spark)
     print("Inicio de validacion")
     object,output,country,project,entity,domain,subDomain,segment,area,rules,error,filtered,write = extractParamsFromJson(config)
     filteredObject = applyFilter(object,filtered)
@@ -61,10 +63,9 @@ def readDf(input):
     print("inicio de lectura de informacion")
     type = input.get(JsonParts.Type)
     if type == "csv":
-        spark.conf.set(input.get(JsonParts.Account),input.get(JsonParts.Key))
+        spark.conf.set("fs.azure.account.key.{}.dfs.core.windows.net".format(dbutils.secrets.get(scope = "b2b-parque", key = input.get(JsonParts.Account))),str(dbutils.secrets.get(scope = "b2b-parque", key = input.get(JsonParts.Key))))
         header = input.get(JsonParts.Header)
-        dbutils = get_dbutils(spark)
-        return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(str(input.get(JsonParts.Path)).format(dbutils.widgets.get('country'),dbutils.widgets.get('year'),dbutils.widgets.get('month')))
+        return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(str(input.get(JsonParts.Path)).format(dbutils.secrets.get(scope = "b2b-parque", key = input.get(JsonParts.Account)),dbutils.widgets.get('country'),dbutils.widgets.get('year'),dbutils.widgets.get('month'),dbutils.widgets.get('day')))
     elif type == "parquet":
         spark.conf.set(input.get(JsonParts.Account),input.get(JsonParts.Key))
         return spark.read.parquet(input.get(JsonParts.Path))
@@ -138,10 +139,9 @@ def writeDf(object:DataFrame,output):
         object.coalesce(One).write.mode("overwrite").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).csv(str(output.get(JsonParts.Path)))  
 
     elif type == "csv":
-        spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
-        dbutils = get_dbutils(spark)
+        spark.conf.set("fs.azure.account.key.{}.blob.core.windows.net".format(dbutils.secrets.get(scope = "b2b-parque", key = output.get(JsonParts.Account))),str(dbutils.secrets.get(scope = "b2b-parque", key =output.get(JsonParts.Key))))
         header:bool = output.get(JsonParts.Header)
-        object.coalesce(One).write.mode("overwrite").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path).format(dbutils.widgets.get('country'),dbutils.widgets.get('year'),dbutils.widgets.get('month'))))
+        object.coalesce(One).write.mode("overwrite").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path).format(dbutils.secrets.get(scope = "b2b-parque", key = output.get(JsonParts.Account)),dbutils.widgets.get('country'),dbutils.widgets.get('year'),dbutils.widgets.get('month'))))
     else:
         spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
         header:bool = output.get(JsonParts.Header)
@@ -158,10 +158,9 @@ def writeDfappend(object:DataFrame,output,Write):
         if Write == "FALSE" :
             print("Se omitio escritura")
         else:
-            spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
-            dbutils = get_dbutils(spark)
+            spark.conf.set("fs.azure.account.key.{}.blob.core.windows.net".format(dbutils.secrets.get(scope = "b2b-parque", key = output.get(JsonParts.Account))),str(dbutils.secrets.get(scope = "b2b-parque", key =output.get(JsonParts.Key))))
             header:bool = output.get(JsonParts.Header)
-            object.coalesce(One).write.mode("append").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path).format(dbutils.widgets.get('country'),dbutils.widgets.get('year'),dbutils.widgets.get('month'))))
+            object.coalesce(One).write.mode("append").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path).format(dbutils.secrets.get(scope = "b2b-parque", key = output.get(JsonParts.Account) ),dbutils.widgets.get('country'),dbutils.widgets.get('year'),dbutils.widgets.get('month'))))
             print("Se escribio en el blob")     
     else:
         if Write == "FALSE" :
@@ -499,7 +498,7 @@ def validateReferentialIntegrity(
     referenceFieldString = ','.join(referenceColumn)
     dataRequirement = f"El atributo {entity}.({fieldString}) debe ser referencia a la tabla y atributo {referenceEntity}.({referenceFieldString}) (FOREIGN KEY)."
     referenceDataFrame = readDf(referalData)
-    errorDf = testDataFrame.select(testColumn).join(referenceDataFrame.select(referenceColumn).toDF(*testColumn), on = testColumn, how = LeftAntiType)
+    errorDf = testDataFrame.join(referenceDataFrame.select(referenceColumn).toDF(*testColumn), on = testColumn, how = LeftAntiType)
     errorCount = errorDf.count()
     ratio = (One - errorCount/registersAmount) * OneHundred
     return [registersAmount,Rules.IntegrityRule.code,Rules.IntegrityRule.name,Rules.IntegrityRule.property,Rules.IntegrityRule.code + "/" + entity + "/" + fieldString,threshold,dataRequirement,fieldString,ratio, errorCount], errorDf
