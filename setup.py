@@ -6,5 +6,5 @@ author='Enzo Ipanaque',
 author_email='enzo.ipanaque@ms-peru.com',
 license='Management Solutions',
 packages=['motordecalidad'],
-py_modules=['functions','constants'],
+py_modules=['functions','constants','rules'],
 zip_safe=False)
