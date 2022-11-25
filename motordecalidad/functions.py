@@ -64,9 +64,8 @@ def readDf(input):
     print("inicio de lectura de informacion")
     type = input.get(JsonParts.Type)
     if type == "csv":
-        spark.conf.set("fs.azure.account.key.{}.dfs.core.windows.net".format(dbutils.secrets.get(scope = "b2b-parque", key = "fs.azure.account.key.{}.dfs.core.windows.net".format(dbutils.secrets.get(scope = "b2b-parque", key = input.get(JsonParts.Account))),str(dbutils.secrets.get(scope = "b2b-parque")),str(dbutils.secrets.get(scope = "b2b-parque", key =  key = input.get(JsonParts.Key))))))
+        spark.conf.set("fs.azure.account.key.{}.dfs.core.windows.net".format(dbutils.secrets.get(scope="b2b-parque",key = input.get(JsonParts.Account)),dbutils.secrets.get(scope = "b2b-parque", key = input.get(JsonParts.Key))))
         header = input.get(JsonParts.Header)
-        return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(str(input.get(JsonParts.Path)).format(dbutils.secrets.get(scope = "b2b-parque", key = input.get(JsonParts.Account)),dbutils.widgets.get('country'),dbutils.widgets.get('year'),dbutils.widgets.get('month'),dbutils.widgets.get('day')))
         return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(str(input.get(JsonParts.Path)).format(dbutils.secrets.get(scope = "b2b-parque", key = input.get(JsonParts.Account)),dbutils.widgets.get('country'),dbutils.widgets.get('year'),dbutils.widgets.get('month'),dbutils.widgets.get('day')))
     elif type == "parquet":
         spark.conf.set(input.get(JsonParts.Account),input.get(JsonParts.Key))
