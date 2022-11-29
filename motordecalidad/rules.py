@@ -1,9 +1,8 @@
 from typing import List
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import *
+from pyspark.sql.functions import to_date,regexp_replace,concat_ws,length,split, lit
 from motordecalidad.constants import *
 import operator
-from motordecalidad.functions import readDf
 
 def validateExistance(object:DataFrame, field:list):
     error_list = list(set(field) - set(object.columns))
@@ -36,7 +35,7 @@ def validateDuplicates(object:DataFrame,fields:List,registersAmount: int,entity:
 #Function that valides the equity between certain columns of two objects
 def validateReferentialIntegrity(
     testDataFrame: DataFrame,
-    referalData,
+    referenceDataFrame: DataFrame,
     testColumn: List,
     referenceColumn: List,
     registersAmount: int,
@@ -46,7 +45,6 @@ def validateReferentialIntegrity(
     fieldString = ','.join(testColumn)
     referenceFieldString = ','.join(referenceColumn)
     dataRequirement = f"El atributo {entity}.({fieldString}) debe ser referencia a la tabla y atributo {referenceEntity}.({referenceFieldString}) (FOREIGN KEY)."
-    referenceDataFrame = readDf(referalData)
     errorDf = testDataFrame.join(referenceDataFrame.select(referenceColumn).toDF(*testColumn), on = testColumn, how = LeftAntiType)
     errorCount = errorDf.count()
     ratio = (One - errorCount/registersAmount) * OneHundred
@@ -272,12 +270,12 @@ def validateFormatNumeric(object:DataFrame,
 
 
 def validateOperation(object:DataFrame,
-                      columnName:StringType,
+                      columnName:str,
                       registerAmount:int,
                       entity:str,
                       threshold:int,
-                      operator:StringType,
-                      input:StringType,
+                      operator:str,
+                      input:str,
                       error:float=0):
 
     cols=object.columns
@@ -299,7 +297,7 @@ def validateOperation(object:DataFrame,
     return [registerAmount, Rules.OperationRule.code,Rules.OperationRule.name,Rules.OperationRule.property,Rules.OperationRule.code + "/" + entity + "/" + columnName,threshold,dataRequirement, columnName, ratio, errorCount], errorDf.select(cols)
  
 def operation(object:DataFrame,
-                      input:StringType):
+                      input:str):
     originalColumns=object.columns
     aux= input.split()
     if(len(aux)==3):
@@ -385,7 +383,7 @@ def operation(object:DataFrame,
 
 
 
-def chooseOper(col,op:StringType):
+def chooseOper(col,op:str):
     if op=='+':
         return col.__add__
     if op=='-':
