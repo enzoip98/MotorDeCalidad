@@ -1,6 +1,6 @@
 from setuptools import setup
 setup(name='MotorDeCalidad',
-version='1.0',
+version='1.1',
 description='Paquete demo de Motor de Calidad',
 author='Enzo Ipanaque',
 author_email='enzo.ipanaque@ms-peru.com',
