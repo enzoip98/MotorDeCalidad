@@ -58,6 +58,8 @@ La sección de reglas contiene las reglas que serán ejecutadas y los parámetro
 9. [Regla de Composición - 109](#regla-de-composición-109)
 10. [Regla de longitud - 110](#regla-de-longitud-110)
 11. [Regla de Tipo de Dato(Parquet) - 111](#regla-de-tipo-de-datoparquet-111)
+12. [Regla de Formato Numerico - 112](#regla-de-tipo-de-formato-numerico-112)
+13. [Regla de  Identidad numérica  - 113](#regla-de-identidad-numerica-113)
 
 #### Ejemplo de la estructura de las reglas completa
 ![Rules](img/RULES.png)
@@ -247,10 +249,32 @@ Esta regla evalua si el schema de una columna de un fichero es de tipo solicitad
 
 ### Regla de Formato numérico -112
 
-#### Ejemplo 
+Esta regla evalua el formato numerico de los numeros decimales con respecto al numero maximo de enteros, separador y numero de decimales.
+
+|Atributo|Definición|Tipo|
+| ------------- | ------------- | ------------|
+|FIELDS|Lista que contiene el nombre de los columnas que serán evaluadas|Obligatorio|
+|MAX_INT|Atributo que contiene el maximo numero de enteros que se evaluan|Obligatorio|
+|SEP|Atributo que contiene el tipo de separador del numero decimal|Obligatorio|
+|NUM_DEC|Atributo que contiene el numero de decimales que se evaluan|Obligatorio|
+|THRESHOLD|Umbral de calidad de ejecución|Obligatorio|
+|WRITE|Valor que determina si se escribirá o no la data observada (TRUE o FALSE)|Opcional (Se toma TRUE por defecto)|
+
+#### Ejemplo
+![112](img/112.png)<br />
 [Volver](#rules)
-
 ### Regla de identidad numérica -113
+Esta regla evalua la correcta ejecucion de un calculo entre columnas
 
-#### Ejemplo 
+|Atributo|Definición|Tipo|
+| ------------- | ------------- | ------------|
+|FIELDS|Lista que contiene el nombre de los columnas que serán evaluadas|Obligatorio|
+|INPUT_VAL|Atributo que contiene el maximo numero de enteros que se evaluan|Obligatorio|
+|OPERATOR|Atributo que contiene el tipo de separador del numero decimal|Obligatorio|
+|ERROR_VAL|Atributo que contiene el numero de decimales que se evaluan|Obligatorio|
+|THRESHOLD|Umbral de calidad de ejecución|Obligatorio|
+|WRITE|Valor que determina si se escribirá o no la data observada (TRUE o FALSE)|Opcional (Se toma TRUE por defecto)|
+
+#### Ejemplo
+![113](img/113.png)<br />
 [Volver](#rules)
