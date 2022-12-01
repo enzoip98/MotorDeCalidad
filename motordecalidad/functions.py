@@ -16,9 +16,7 @@ print("Motor de Calidad Version Release 1.1")
 def startValidation(inputspark,config):
     global spark
     global dbutils
-    global dbutils
     spark = inputspark
-    dbutils = get_dbutils(spark)
     dbutils = get_dbutils(spark)
     print("Inicio de validacion")
     object,output,country,project,entity,domain,subDomain,segment,area,rules,error,filtered = extractParamsFromJson(config)
@@ -39,6 +37,7 @@ def get_dbutils(spark):
         return dbutils
 
 # Function that extracts the information from de JSON File
+# @config Variable that contains the JSON route
 def extractParamsFromJson(config):
     file = open(config)
     data = json.load(file)
@@ -125,9 +124,6 @@ def readDf(input):
         .option ( "url" , url) \
         .option ( "dbtable" , table) \
         .load ()
-    elif type == "local":
-        header = input.get(JsonParts.Header)
-        return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(input.get(JsonParts.Path)) 
     else:
         spark.conf.set(input.get(JsonParts.Account),input.get(JsonParts.Key))
         header = input.get(JsonParts.Header)
@@ -136,11 +132,7 @@ def readDf(input):
 # Function that writes the output dataframe with the overwrite method
 def writeDf(object:DataFrame,output):
     type = output.get(JsonParts.Type)
-    if type == "local":
-        header:bool = output.get(JsonParts.Header)
-        object.coalesce(One).write.mode("overwrite").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).csv(str(output.get(JsonParts.Path)))  
-
-    elif type == "csv":
+    if type == "csv":
         spark.conf.set("fs.azure.account.key.{}.blob.core.windows.net".format(dbutils.secrets.get(scope = "b2b-parque", key = output.get(JsonParts.Account))),str(dbutils.secrets.get(scope = "b2b-parque", key =output.get(JsonParts.Key))))
         header:bool = output.get(JsonParts.Header)
         object.coalesce(One).write.mode("overwrite").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path).format(dbutils.secrets.get(scope = "b2b-parque", key = output.get(JsonParts.Account)),dbutils.widgets.get('country'),dbutils.widgets.get('year'),dbutils.widgets.get('month'))))
@@ -445,6 +437,10 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
                             errorData = errorData.union(errorTotal)
                     rulesData.append(data)
                     print("regla de operacion numerica: %s segundos" % (time.time() - t))
+            elif code[0:3] == Rules.StatisticsResult.code:
+                columnNames = rules[code].get(JsonParts.Fields)
+                res = measuresCentralTendency(object, columnNames,spark)
+                res.show()
         else:
             pass
     if errorData.count() > Zero:

@@ -404,3 +404,15 @@ def chooseOper(col,op:str):
         return operator.le
     if op=='<':
         return operator.ge
+
+def measuresCentralTendency(object:DataFrame, columnNames, spark):
+    object=object.select(columnNames)
+    modes=["Mode"]
+    for column in columnNames:
+        modes.append(object.groupby(column).count().orderBy("count", ascending=False).first()[0])
+        res=object.summary('mean','25%','50%','75%')
+        res=object.summary('mean','25%','50%','75%')
+
+    mode = spark.createDataFrame([modes], columnNames)
+    res = res.union(mode)
+    return res
