@@ -411,7 +411,7 @@ def measuresCentralTendency(object:DataFrame, columnNames):
     modes=["Mode"]
     for column in columnNames:
         modes.append(object.groupby(column).count().orderBy("count", ascending=False).first()[0])
-        res=object.summary('mean','50%')
+        res=object.summary('mean','25%','50%','75%')
 
     mode = spark.createDataFrame([modes], columnNames)
     res = res.union(mode)
