@@ -440,7 +440,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
             elif code[0:3] == Rules.StatisticsResult.code:
                 columnNames = rules[code].get(JsonParts.Fields)
                 res = measuresCentralTendency(object, columnNames,spark)
-                res.show()
+                writeDf(res,rules[code].get(JsonParts.Output))
         else:
             pass
     if errorData.count() > Zero:
