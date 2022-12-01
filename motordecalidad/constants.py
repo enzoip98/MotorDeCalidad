@@ -55,6 +55,10 @@ class Rules:
         name = "Exactitud"
         property = "Exactitud de Resultado"
         code = "113"
+    class StatisticsResult:
+        name = "Exactitud"
+        property = "Resultado"
+        code = "114"
 
 class JsonParts:
     Input = "INPUT"
