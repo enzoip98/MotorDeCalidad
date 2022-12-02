@@ -438,8 +438,8 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
                     rulesData.append(data)
                     print("regla de operacion numerica: %s segundos" % (time.time() - t))
             elif code[0:3] == Rules.StatisticsResult.code:
-                columnNames = rules[code].get(JsonParts.Fields)
-                res = measuresCentralTendency(object, columnNames,spark)
+                column = rules[code].get(JsonParts.Fields)
+                res = measuresCentralTendency(object, column,spark)
                 writeDf(res,rules[code].get(JsonParts.Output))
         else:
             pass
