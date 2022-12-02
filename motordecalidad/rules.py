@@ -3,6 +3,7 @@ from pyspark.sql import DataFrame
 from pyspark.sql.functions import to_date,regexp_replace,concat_ws,length,split, lit
 from motordecalidad.constants import *
 import operator
+from pyspark.sql.types import StructType,StructField, StringType
 
 def validateExistance(object:DataFrame, field:list):
     error_list = list(set(field) - set(object.columns))
@@ -405,14 +406,12 @@ def chooseOper(col,op:str):
     if op=='<':
         return operator.ge
 
-def measuresCentralTendency(object:DataFrame, columnNames, spark):
-    object=object.select(columnNames)
+def measuresCentralTendency(object:DataFrame, column, spark):
     modes=["Mode"]
-    for column in columnNames:
-        modes.append(object.groupby(column).count().orderBy("count", ascending=False).first()[0])
-        res=object.summary('mean','25%','50%','75%')
-        res=object.summary('mean','25%','50%','75%')
-
-    mode = spark.createDataFrame([modes], columnNames)
-    res = res.union(mode)
+    columnSchema = ["summary",column]
+    modes.append(str(object.groupby(column).count().orderBy("count", ascending=False).first()[0]))
+    res=object.select(column).summary('mean','25%','50%','75%')
+    modeData = [(modes[0],modes[1])]
+    modeDf = spark.createDataFrame(data = modeData,schema = columnSchema)
+    res = res.union(modeDf)
     return res
