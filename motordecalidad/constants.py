@@ -1,7 +1,7 @@
 ##Constants
 from pyspark.sql.functions import col
 class Rules:
-    class ExistanceRule:
+    class Pre_Requisites:
         code = "100"
     class NullRule:
         name = "Completitud"
@@ -100,6 +100,7 @@ class JsonParts:
     Input_val = "INPUT_VAL"
     Error_val = "ERROR_VAL"
     Operator = "OPERATOR"
+    Scope = "SCOPE"
 
 
 LeftAntiType = "leftanti"
