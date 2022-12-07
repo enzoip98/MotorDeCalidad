@@ -62,10 +62,21 @@ def extractParamsFromJson(config):
 def readDf(input):
     print("inicio de lectura de informacion")
     type = input.get(JsonParts.Type)
-    if type == "csv":
-        spark.conf.set("fs.azure.account.key.{}.dfs.core.windows.net".format(dbutils.secrets.get(scope="b2b-parque",key = input.get(JsonParts.Account))),dbutils.secrets.get(scope = "b2b-parque", key = input.get(JsonParts.Key)))
+    if type == "prod_csv":
+        spark.conf.set("fs.azure.account.key.{account}.dfs.core.windows.net".format(account = dbutils.secrets.get(scope=input.get(JsonParts.Scope),key = input.get(JsonParts.Account))),dbutils.secrets.get(scope = input.get(JsonParts.Scope), key = input.get(JsonParts.Key)))
         header = input.get(JsonParts.Header)
-        return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(str(input.get(JsonParts.Path)).format(dbutils.secrets.get(scope = "b2b-parque", key = input.get(JsonParts.Account)),dbutils.widgets.get('country'),dbutils.widgets.get('year'),dbutils.widgets.get('month'),dbutils.widgets.get('day')))
+        return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(str(input.get(JsonParts.Path)).format( account = dbutils.secrets.get(scope = input.get(JsonParts.Scope), key = input.get(JsonParts.Account)),
+        country = dbutils.widgets.get('country'),
+        year = dbutils.widgets.get('year'),
+        month = dbutils.widgets.get('month'),
+        day = dbutils.widgets.get('day')))
+    elif type == "prod_parquet":
+        spark.conf.set("fs.azure.account.key.{account}.dfs.core.windows.net".format( account = dbutils.secrets.get(scope=input.get(JsonParts.Scope),key = input.get(JsonParts.Account))),dbutils.secrets.get(scope = input.get(JsonParts.Scope), key = input.get(JsonParts.Key)))
+        return spark.read.parquet(str(input.get(JsonParts.Path)).format(account = dbutils.secrets.get(scope = input.get(JsonParts.Scope), key = input.get(JsonParts.Account)),
+        country = dbutils.widgets.get('country'),
+        year = dbutils.widgets.get('year'),
+        month = dbutils.widgets.get('month'),
+        day = dbutils.widgets.get('day')))
     elif type == "parquet":
         spark.conf.set(input.get(JsonParts.Account),input.get(JsonParts.Key))
         return spark.read.parquet(input.get(JsonParts.Path))
@@ -123,7 +134,7 @@ def readDf(input):
         .option ( "driver" , driver) \
         .option ( "url" , url) \
         .option ( "dbtable" , table) \
-        .load ()
+        .load()
     else:
         spark.conf.set(input.get(JsonParts.Account),input.get(JsonParts.Key))
         header = input.get(JsonParts.Header)
@@ -132,10 +143,14 @@ def readDf(input):
 # Function that writes the output dataframe with the overwrite method
 def writeDf(object:DataFrame,output):
     type = output.get(JsonParts.Type)
-    if type == "csv":
-        spark.conf.set("fs.azure.account.key.{}.blob.core.windows.net".format(dbutils.secrets.get(scope = "b2b-parque", key = output.get(JsonParts.Account))),str(dbutils.secrets.get(scope = "b2b-parque", key =output.get(JsonParts.Key))))
+    if type == "prod_csv":
+        spark.conf.set("fs.azure.account.key.{account}.blob.core.windows.net".format(account = dbutils.secrets.get(scope = output.get(JsonParts.Scope), key = output.get(JsonParts.Account))),str(dbutils.secrets.get(scope = output.get(JsonParts.Scope), key =output.get(JsonParts.Key))))
         header:bool = output.get(JsonParts.Header)
-        object.coalesce(One).write.mode("overwrite").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path).format(dbutils.secrets.get(scope = "b2b-parque", key = output.get(JsonParts.Account)),dbutils.widgets.get('country'),dbutils.widgets.get('year'),dbutils.widgets.get('month'))))
+        object.coalesce(One).write.mode("overwrite").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path).format( 
+            account = dbutils.secrets.get(scope = output.get(JsonParts.Scope), key = output.get(JsonParts.Account)),
+            country = dbutils.widgets.get('country'),
+            year = dbutils.widgets.get('year'),
+            month = dbutils.widgets.get('month'))))
     else:
         spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
         header:bool = output.get(JsonParts.Header)
@@ -167,12 +182,12 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
     rulesData:List = []
     for code in rules:
         if rules[code].get(JsonParts.Fields) not in [0,["0"],"0"] :
-            if code[0:3] == Rules.ExistanceRule.code:
+            if code[0:3] == Rules.Pre_Requisites.code:
                 print("Inicializando regla de existencia")
                 columns = rules[code].get(JsonParts.Fields)
                 t = time.time()
-                validateExistance(object,columns)
-                print("regla de existencia: %s segundos" % (time.time() - t))
+                validateRequisites(object,columns)
+                print("regla de requisitos: %s segundos" % (time.time() - t))
             if code[0:3] == Rules.NullRule.code:
                 print("Inicializando reglas de Nulos")
                 data:List = []
