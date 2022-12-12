@@ -137,8 +137,8 @@ def readDf(input):
         .load()
     else:
         spark.conf.set(input.get(JsonParts.Account),input.get(JsonParts.Key))
-        header = input.get(JsonParts.Header)
-        return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(input.get(JsonParts.Path))
+    header = input.get(JsonParts.Header)
+    return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(input.get(JsonParts.Path))
 
 # Function that writes the output dataframe with the overwrite method
 def writeDf(object:DataFrame,output):
