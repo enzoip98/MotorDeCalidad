@@ -1,6 +1,6 @@
 from typing import List
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import to_date,regexp_replace,concat_ws,length,split, lit
+from pyspark.sql.functions import to_date,regexp_replace,concat_ws,length,split, lit, collect_list
 from motordecalidad.constants import *
 import operator
 
@@ -409,11 +409,16 @@ def chooseOper(col,op:str):
         return operator.ge
 
 def measuresCentralTendency(object:DataFrame, column, spark):
+    pivotCol='summary'
     modes=["Mode"]
-    columnSchema = ["summary",column]
+    columnSchema = [pivotCol,column]
     modes.append(str(object.groupby(column).count().orderBy("count", ascending=False).first()[0]))
     res=object.select(column).summary('mean','25%','50%','75%')
     modeData = [(modes[0],modes[1])]
     modeDf = spark.createDataFrame(data = modeData,schema = columnSchema)
     res = res.union(modeDf)
-    return res
+    stackCols = "'"+str(column)+"'"+","+column
+    df_1 = res.selectExpr(pivotCol, "stack(1" + "," + stackCols + ")")
+    final_df = df_1.groupBy(col("col0")).pivot(pivotCol).agg(concat_ws("", collect_list(col("col1"))))\
+                   .withColumnRenamed("col0", pivotCol)
+    return final_df
