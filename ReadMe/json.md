@@ -1,7 +1,7 @@
 Para el json es necesario seguir la siguiente estructura
 
 ## Input
-La sección input debe contener los siguientes atributos
+La sección input permite definir los parámetros de entrada para el acceso a la información. Debe contener los siguientes atributos de forma obligatoria
 
 |Atributo|Definición|Tipo|
 | ------------- | ------------- | ------------|
@@ -12,18 +12,12 @@ La sección input debe contener los siguientes atributos
 |SUB_DOMAIN|Subdominio de la entidad|Obligatorio|
 |SEGMENT|Segmento de la entidad|Obligatorio|
 |AREA|Area de la entidad|Obligatorio|
-|PATH|Ruta en la que se ubica el fichero que será evaluado|Aplica para todos los origenes excepto bases de datos|
 |TYPE|Tipo de origen de datos|Opcional (Se aceptan parquet,csv,mysql y postgre, si se deja vacío se toma como csv)|
-|HEADER|Valor de Cabecera para CSV (TRUE o FALSE)|Opcional (solo aplica para ficheros csv)|
-|ACCOUNT|Nombre de cuenta de acceso para almacenamiento de azure|Opcional (solo aplica csv y parquet)|
-|DELIMITER|Caracter delimitador para CSV|Opcional (solo aplica para ficheros csv)|
-|KEY|Llave de acceso para almacenamiento de azure|Opcional (solo aplica csv y parquet)|
-|HOST|URL del Host por la base de datos|Opcional (solo aplica para bases de datos)|
-|PORT|Puerto de conexión a la base de datos (Para MYSQL "3306")|Opcional (solo aplica para bases de datos)|
-|DATABASE_NAME|Nombre de la base de datos|Opcional (solo aplica para bases de datos)|
-|DATABASE_TABLE|Nombre de la tabla en la base de datos|Opcional (solo aplica para bases de datos)|
-|DATABASE_USER|Nombre de usuario de acceso para la base de datos|Opcional (solo aplica para bases de datos)|
-|DATABASE_PASSWORD|Contraseña de acceso para la base de datos|Opcional (solo aplica para bases de datos)|
+
+Existen más parámetros que deberan informarse de forma oportuna dependiendo del tipo de lectura a escoger.
+
+1. [prod_csv](inputs.md#csv-en-producción)
+
 
 #### Ejemplo 
 
