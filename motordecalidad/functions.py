@@ -437,10 +437,19 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
                             errorData = errorData.union(errorTotal)
                     rulesData.append(data)
                     print("regla de operacion numerica: %s segundos" % (time.time() - t))
+
             elif code[0:3] == Rules.StatisticsResult.code:
+                print("Inicializando analisis exploratorio")
                 column = rules[code].get(JsonParts.Fields)
-                res = measuresCentralTendency(object, column,spark)
-                writeDf(res,rules[code].get(JsonParts.Output))
+
+                if column[0] == "*" :
+                    res = measuresCentralTendency(object, object.columns, spark)
+                    writeDf(res,rules[code].get(JsonParts.Output))
+                
+                else:
+                    res = measuresCentralTendency(object, column,spark)
+                    writeDf(res,rules[code].get(JsonParts.Output))
+  
         else:
             pass
     if errorData.count() > Zero:

@@ -407,17 +407,43 @@ def chooseOper(col,op:str):
         return operator.ge
 
 
-def measuresCentralTendency(object:DataFrame, column, spark):
+def convert_field_to_struct(object, list_campos: list):
+    list_struct_fields = []
+
+    for campo in list_campos:
+        type = object.schema[campo].dataType
+        list_struct_fields.append(StructField(campo, type))
+
+    return StructType(list_struct_fields)
+
+def measuresCentralTendency(object:DataFrame, list_column, spark):
     pivotCol='summary'
     modes=["Mode"]
-    columnSchema = [pivotCol,column]
-    modes.append(str(object.groupby(column).count().orderBy("count", ascending=False).first()[0]))
-    res=object.select(column).summary('mean','25%','50%','75%')
+
+    modes.append(str(object.groupby(list_column).count().orderBy("count", ascending=False).first()[0]))
+
+    res=object.select(list_column).summary('mean','25%','50%','75%')
     modeData = [(modes[0],modes[1])]
-    modeDf = spark.createDataFrame(data = modeData,schema = columnSchema)
+
+    #list_column = list_column + [pivotCol]
+
+    columnSchema = convert_field_to_struct(res, list_column)
+
+    modeDf = spark.createDataFrame(data = modeData, schema = columnSchema)
     res = res.union(modeDf)
-    stackCols = "'"+str(column)+"'"+","+column
+
+    stackCols = "'"+str(list_column)+"'"+","+list_column
+
     df_1 = res.selectExpr(pivotCol, "stack(1" + "," + stackCols + ")")
+
     final_df = df_1.groupBy(col("col0")).pivot(pivotCol).agg(concat_ws("", collect_list(col("col1"))))\
                    .withColumnRenamed("col0", pivotCol)
+                   
+    final_df=final_df.withColumnRenamed('summary', 'CAMPOS')\
+                        .withColumnRenamed('25%','Q1')\
+                        .withColumnRenamed('50%','MEDIANA')\
+                        .withColumnRenamed('75%','Q3')\
+                        .withColumnRenamed('Mode', 'MODA')\
+                        .withColumnRenamed('mean', 'MEDIA')
+
     return final_df
