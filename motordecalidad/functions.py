@@ -9,13 +9,15 @@ import time
 from motordecalidad.rules import *
 
 
-print("Motor de Calidad Version Release 1.1")
+print("Motor de Calidad Version Release 1.3")
 
 # Main function, Invokes all the parameters from the json, Optionally filters, starts the rule validation
 # Writes and returns the summary of the validation 
-def startValidation(inputspark,config):
+def startValidation(inputspark,config,dfltPath=""):
     global spark
     global dbutils
+    global DefaultPath
+    DefaultPath = dfltPath
     spark = inputspark
     dbutils = get_dbutils(spark)
     print("Inicio de validacion")
@@ -137,8 +139,11 @@ def readDf(input):
         .load()
     else:
         spark.conf.set(input.get(JsonParts.Account),input.get(JsonParts.Key))
-    header = input.get(JsonParts.Header)
-    return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(input.get(JsonParts.Path))
+        header = input.get(JsonParts.Header)
+        if DefaultPath == "" : 
+            return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(input.get(JsonParts.Path))
+        else:
+            return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(DefaultPath)
 
 # Function that writes the output dataframe with the overwrite method
 def writeDf(object:DataFrame,output):
@@ -154,7 +159,14 @@ def writeDf(object:DataFrame,output):
     else:
         spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
         header:bool = output.get(JsonParts.Header)
-        object.coalesce(One).write.mode("overwrite").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path)))
+        partitions:List = output.get(JsonParts.Partitions)
+        try:
+            if len(partitions) > Zero :
+                object.coalesce(One).write.partitionBy(*partitions).mode("overwrite").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path)))
+            else:
+                object.coalesce(One).write.mode("overwrite").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path)))
+        except:
+            object.coalesce(One).write.mode("overwrite").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path)))
     print("Se escribio en el blob")
 
 def applyFilter(object:DataFrame, filtered) :
@@ -178,7 +190,6 @@ def createErrorData(object:DataFrame) :
 def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, project:str,country: str,domain: str,subDomain: str,segment: str,area: str,error):
     runTime = datetime.datetime.now()
     errorData = createErrorData(object)
-
     rulesData:List = []
     for code in rules:
         if rules[code].get(JsonParts.Fields) not in [0,["0"],"0"] :
@@ -454,7 +465,10 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
                     print("regla de operacion numerica: %s segundos" % (time.time() - t))
             elif code[0:3] == Rules.StatisticsResult.code:
                 column = rules[code].get(JsonParts.Fields)
-                res = measuresCentralTendency(object, column,spark)
+                if column[0] == "*" :
+                    res = measuresCentralTendency(object, object.columns,spark)
+                else:
+                    res = measuresCentralTendency(object, column,spark)
                 writeDf(res,rules[code].get(JsonParts.Output))
         else:
             pass
@@ -462,7 +476,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
         writeDf(errorData,error)
     validationData:DataFrame = spark.createDataFrame(data = rulesData, schema = OutputDataFrameColumns)
     return validationData.select(
-        Country.value(lit(country)),
+        Country.value(when(lit(country).isNull(),dbutils.widgets.get('country')).otherwise(country)),
         Project.value(lit(project)),
         Entity.value(lit(entity)),
         TestedFields.column,

@@ -3,6 +3,7 @@ from pyspark.sql import DataFrame
 from pyspark.sql.functions import to_date,regexp_replace,concat_ws,length,split, lit, collect_list
 from motordecalidad.constants import *
 import operator
+from pyspark.sql.types import StructField, StructType
 
 def validateRequisites(object:DataFrame, field:list):
     error_list = list(set(field) - set(object.columns))
@@ -421,4 +422,7 @@ def measuresCentralTendency(object:DataFrame, column, spark):
     df_1 = res.selectExpr(pivotCol, "stack(1" + "," + stackCols + ")")
     final_df = df_1.groupBy(col("col0")).pivot(pivotCol).agg(concat_ws("", collect_list(col("col1"))))\
                    .withColumnRenamed("col0", pivotCol)
+    final_df=final_df.withColumnRenamed('25%','per_25')\
+    .withColumnRenamed('50%','median')\
+    .withColumnRenamed('75%','per_75')
     return final_df

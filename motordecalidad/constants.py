@@ -101,6 +101,7 @@ class JsonParts:
     Error_val = "ERROR_VAL"
     Operator = "OPERATOR"
     Scope = "SCOPE"
+    Partitions = "PARTITIONS"
 
 
 LeftAntiType = "leftanti"
