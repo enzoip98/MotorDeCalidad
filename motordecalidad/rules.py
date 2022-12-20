@@ -416,34 +416,41 @@ def convert_field_to_struct(object, list_campos: list):
 
     return StructType(list_struct_fields)
 
-def measuresCentralTendency(object:DataFrame, list_column, spark):
+def measuresCentralTendency(object:DataFrame, columns, spark):
     pivotCol='summary'
-    modes=["Mode"]
+    modes=("Mode",)
+    columnSchema = [pivotCol]+columns
+    
+    for i in columns:
+        if str(object.schema[i].dataType) == 'BooleanType()':
+            object = object.withColumn(i, object[i].cast('string'))
+        
+        modes=modes+(str(object.groupby(i).count().orderBy("count", ascending=False).first()[0]),)
+        
+    res=object.select(columns).summary('stddev','mean','min','1%','5%','10%','25%','50%','75%','90%','95%','max')
+    modeData = [modes]
+    modeDf = spark.createDataFrame(data = modeData,schema = columnSchema)
 
-    modes.append(str(object.groupby(list_column).count().orderBy("count", ascending=False).first()[0]))
-
-    res=object.select(list_column).summary('mean','25%','50%','75%')
-    modeData = [(modes[0],modes[1])]
-
-    #list_column = list_column + [pivotCol]
-
-    columnSchema = convert_field_to_struct(res, list_column)
-
-    modeDf = spark.createDataFrame(data = modeData, schema = columnSchema)
     res = res.union(modeDf)
-
-    stackCols = "'"+str(list_column)+"'"+","+list_column
-
-    df_1 = res.selectExpr(pivotCol, "stack(1" + "," + stackCols + ")")
-
+    columnsValue = list(map(lambda x: str("'") + str(x) + str("',")  + str(x), columns))
+    stackCols = ','.join(x for x in columnsValue)
+    df_1 = res.selectExpr(pivotCol, "stack(" + str(len(columns)) + "," + stackCols + ")")\
+            .select(pivotCol, "col0", "col1")
     final_df = df_1.groupBy(col("col0")).pivot(pivotCol).agg(concat_ws("", collect_list(col("col1"))))\
-                   .withColumnRenamed("col0", pivotCol)
-                   
+                    .withColumnRenamed("col0", pivotCol)
+    
     final_df=final_df.withColumnRenamed('summary', 'CAMPOS')\
-                        .withColumnRenamed('25%','Q1')\
+                        .withColumnRenamed('1%','P1')\
+                        .withColumnRenamed('5%','P5')\
+                        .withColumnRenamed('25%','P25')\
                         .withColumnRenamed('50%','MEDIANA')\
-                        .withColumnRenamed('75%','Q3')\
+                        .withColumnRenamed('75%','P75')\
+                        .withColumnRenamed('90%','P90')\
+                        .withColumnRenamed('95%','P95')\
                         .withColumnRenamed('Mode', 'MODA')\
-                        .withColumnRenamed('mean', 'MEDIA')
-
+                        .withColumnRenamed('mean', 'MEDIA')\
+                        .withColumnRenamed('stddev','DESVIACION ESTANDAR')\
+                        .withColumnRenamed('min','MIN')\
+                        .withColumnRenamed('max','MAX')
+    
     return final_df
