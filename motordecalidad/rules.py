@@ -14,10 +14,6 @@ def validateRequisites(object:DataFrame, field:list):
         raise Exception(f"Falta columna o la columna tiene un nombre distinto. Por favor chequear que el input tiene un esquema válido: {','.join(error_list)}")
     elif rowsNumber == Zero :
         raise Exception("El dataframe de entrada no contiene registros")
-    elif len(error_list) != Zero:
-        raise Exception(f"Falta columna o la columna tiene un nombre distinto. Por favor chequear que el input tiene un esquema válido: {','.join(error_list)}")
-    elif rowsNumber == Zero :
-        raise Exception("El dataframe de entrada no contiene registros")
 
 #Function that valides the amount of Null registers for certain columns of the dataframe
 def validateNull(object:DataFrame,field: str,registersAmount: int,entity: str,threshold):

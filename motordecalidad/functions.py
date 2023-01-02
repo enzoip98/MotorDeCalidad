@@ -18,8 +18,6 @@ def startValidation(inputspark,config,dfltPath=""):
     global dbutils
     global DefaultPath
     DefaultPath = dfltPath
-    global DefaultPath
-    DefaultPath = dfltPath
     spark = inputspark
     dbutils = get_dbutils(spark)
     print("Inicio de validacion")
@@ -80,11 +78,6 @@ def readDf(input):
     elif type == "prod_parquet":
         spark.conf.set("fs.azure.account.key.{account}.dfs.core.windows.net".format( account = dbutils.secrets.get(scope=input.get(JsonParts.Scope),key = input.get(JsonParts.Account))),dbutils.secrets.get(scope = input.get(JsonParts.Scope), key = input.get(JsonParts.Key)))
         return spark.read.parquet(str(input.get(JsonParts.Path)).format(account = dbutils.secrets.get(scope = input.get(JsonParts.Scope), key = input.get(JsonParts.Account)),
-        country = dbutils.widgets.get('country'),
-        year = dbutils.widgets.get('year'),
-        month = dbutils.widgets.get('month'),
-        day = dbutils.widgets.get('day')))
-        return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(str(input.get(JsonParts.Path)).format( account = dbutils.secrets.get(scope = input.get(JsonParts.Scope), key = input.get(JsonParts.Account)),
         country = dbutils.widgets.get('country'),
         year = dbutils.widgets.get('year'),
         month = dbutils.widgets.get('month'),
@@ -161,16 +154,10 @@ def readDf(input):
             return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(input.get(JsonParts.Path))
         else:
             return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(DefaultPath)
-        if DefaultPath == "" : 
-            return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(input.get(JsonParts.Path))
-        else:
-            return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(DefaultPath)
 
 # Function that writes the output dataframe with the overwrite method
 def writeDf(object:DataFrame,output):
     type = output.get(JsonParts.Type)
-    if type == "prod_csv":
-        spark.conf.set("fs.azure.account.key.{account}.blob.core.windows.net".format(account = dbutils.secrets.get(scope = output.get(JsonParts.Scope), key = output.get(JsonParts.Account))),str(dbutils.secrets.get(scope = output.get(JsonParts.Scope), key =output.get(JsonParts.Key))))
     if type == "prod_csv":
         spark.conf.set("fs.azure.account.key.{account}.blob.core.windows.net".format(account = dbutils.secrets.get(scope = output.get(JsonParts.Scope), key = output.get(JsonParts.Account))),str(dbutils.secrets.get(scope = output.get(JsonParts.Scope), key =output.get(JsonParts.Key))))
         header:bool = output.get(JsonParts.Header)
@@ -221,8 +208,6 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
                 print("Inicializando regla de requisitos")
                 columns = rules[code].get(JsonParts.Fields)
                 t = time.time()
-                validateRequisites(object,columns)
-                print("regla de requisitos: %s segundos" % (time.time() - t))
                 validateRequisites(object,columns)
                 print("regla de requisitos: %s segundos" % (time.time() - t))
             if code[0:3] == Rules.NullRule.code:
@@ -491,7 +476,6 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
                     print("regla de operacion numerica: %s segundos" % (time.time() - t))
 
             elif code[0:3] == Rules.StatisticsResult.code:
-                print("Inicializando analisis exploratorio")
                 print("Inicializando analisis exploratorio")
                 column = rules[code].get(JsonParts.Fields)
                 if column[0] == "*" :
