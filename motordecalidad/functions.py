@@ -489,7 +489,9 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
                             errorData = errorData.union(errorTotal)
                     rulesData.append(data)
                     print("regla de operacion numerica: %s segundos" % (time.time() - t))
+
             elif code[0:3] == Rules.StatisticsResult.code:
+                print("Inicializando analisis exploratorio")
                 print("Inicializando analisis exploratorio")
                 column = rules[code].get(JsonParts.Fields)
                 if column[0] == "*" :
