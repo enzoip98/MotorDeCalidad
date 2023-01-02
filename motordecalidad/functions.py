@@ -67,8 +67,6 @@ def readDf(input):
     type = input.get(JsonParts.Type)
     if type == "prod_csv":
         spark.conf.set("fs.azure.account.key.{account}.dfs.core.windows.net".format(account = dbutils.secrets.get(scope=input.get(JsonParts.Scope),key = input.get(JsonParts.Account))),dbutils.secrets.get(scope = input.get(JsonParts.Scope), key = input.get(JsonParts.Key)))
-    if type == "prod_csv":
-        spark.conf.set("fs.azure.account.key.{account}.dfs.core.windows.net".format(account = dbutils.secrets.get(scope=input.get(JsonParts.Scope),key = input.get(JsonParts.Account))),dbutils.secrets.get(scope = input.get(JsonParts.Scope), key = input.get(JsonParts.Key)))
         header = input.get(JsonParts.Header)
         return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(str(input.get(JsonParts.Path)).format( account = dbutils.secrets.get(scope = input.get(JsonParts.Scope), key = input.get(JsonParts.Account)),
         country = dbutils.widgets.get('country'),
