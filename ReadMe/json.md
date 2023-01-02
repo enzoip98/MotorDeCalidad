@@ -68,6 +68,13 @@ La sección output contiene la información necesaria para la escritura de los r
 |DELIMITER|Caracter delimitador para CSV|Obligatorio|
 |ACCOUNT|Nombre de cuenta de acceso para almacenamiento de azure|Obligatorio|
 |KEY|Llave de acceso para almacenamiento de azure|Obligatorio|
+|PARTITIONS|Lista que define las columnas por las cuales se particionará la ruta de salida|Obligatorio(en caso no se desee particiones dejar la lista vacía)|
+
+**Gobierno de datos**
+Dados los esfuerzos que se vienen realizando para lograr explotar la data generada para el motor de calidad se exhorta a los usuarios del motor a utilizar los siguientes parámetros en la sección output. Esto con el objetivo de mantener la data ordenada y accesible, además de ofrecer la capacidad de consultar la data en bloques que permitan la explotación más eficiente de la misma.
+
+PATH: La ruta deberá siempre apuntar al contenedor metadata y debe estar bajo la carpeta dq. Para esto se debe asignar el valor "wasbs://metadata@adlseu2edthdev001.blob.core.windows.net/dq/"
+PARTITIONS: Para lograr el objetivo antes mencionado es necesario particionar la información utilizando el siguiente valor para el parámetro "["PROYECTO","ENTIDAD","CODIGO_DE_PAIS","FECHA_DE_INFORMACION","FECHA_EJECUCION_REGLA"]"
 
 #### Ejemplo
 ![Output](img/OUTPUT.png)<br />

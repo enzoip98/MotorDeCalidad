@@ -102,6 +102,7 @@ class JsonParts:
     Operator = "OPERATOR"
     Scope = "SCOPE"
     Partitions = "PARTITIONS"
+    DataDate = "DATA_DATE"
 
 
 LeftAntiType = "leftanti"
@@ -116,6 +117,8 @@ class Field:
         self.column = col(colName)
     def value(self,colValue):
         return (colValue).alias(self.name)
+CountryId = Field("CODIGO_DE_PAIS")
+DataDate = Field("FECHA_DE_INFORMACION")
 Country = Field("PAIS")
 Project = Field("PROYECTO")
 Entity = Field("ENTIDAD")
