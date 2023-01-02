@@ -9,7 +9,7 @@ import time
 from motordecalidad.rules import *
 
 
-print("Motor de Calidad Version Release 1.3")
+print("Motor de Calidad Version Release 1.4")
 
 # Main function, Invokes all the parameters from the json, Optionally filters, starts the rule validation
 # Writes and returns the summary of the validation 
@@ -21,10 +21,10 @@ def startValidation(inputspark,config,dfltPath=""):
     spark = inputspark
     dbutils = get_dbutils(spark)
     print("Inicio de validacion")
-    object,output,country,project,entity,domain,subDomain,segment,area,rules,error,filtered = extractParamsFromJson(config)
+    object,output,country,project,entity,domain,subDomain,segment,area,rules,error,filtered,dataDate = extractParamsFromJson(config)
     filteredObject = applyFilter(object,filtered)
     registerAmount = filteredObject.count()
-    validationData = validateRules(filteredObject,rules,registerAmount,entity,project,country,domain,subDomain,segment,area,error)
+    validationData = validateRules(filteredObject,rules,registerAmount,entity,project,country,domain,subDomain,segment,area,error,dataDate)
     writeDf(validationData, output)
     return validationData
 
@@ -52,13 +52,14 @@ def extractParamsFromJson(config):
     subDomain: str = input.get(JsonParts.SubDomain)
     segment: str = input.get(JsonParts.Segment)
     area: str = input.get(JsonParts.Area)
+    dataDate: str = input.get(JsonParts.DataDate)
     error = data.get(JsonParts.Error)
     filtered = data.get(JsonParts.Filter)
 
     entityDf = readDf(input)
     rules = data.get(JsonParts.Rules)
     print("Extraccion de JSON completada")
-    return entityDf,output,country,project,entity,domain,subDomain,segment,area,rules,error,filtered
+    return entityDf,output,country,project,entity,domain,subDomain,segment,area,rules,error,filtered,dataDate
 
 # Function that reads the input File
 def readDf(input):
@@ -68,6 +69,13 @@ def readDf(input):
         spark.conf.set("fs.azure.account.key.{account}.dfs.core.windows.net".format(account = dbutils.secrets.get(scope=input.get(JsonParts.Scope),key = input.get(JsonParts.Account))),dbutils.secrets.get(scope = input.get(JsonParts.Scope), key = input.get(JsonParts.Key)))
         header = input.get(JsonParts.Header)
         return spark.read.option("delimiter",input.get(JsonParts.Delimiter)).option("header",header).csv(str(input.get(JsonParts.Path)).format( account = dbutils.secrets.get(scope = input.get(JsonParts.Scope), key = input.get(JsonParts.Account)),
+        country = dbutils.widgets.get('country'),
+        year = dbutils.widgets.get('year'),
+        month = dbutils.widgets.get('month'),
+        day = dbutils.widgets.get('day')))
+    elif type == "prod_parquet":
+        spark.conf.set("fs.azure.account.key.{account}.dfs.core.windows.net".format( account = dbutils.secrets.get(scope=input.get(JsonParts.Scope),key = input.get(JsonParts.Account))),dbutils.secrets.get(scope = input.get(JsonParts.Scope), key = input.get(JsonParts.Key)))
+        return spark.read.parquet(str(input.get(JsonParts.Path)).format(account = dbutils.secrets.get(scope = input.get(JsonParts.Scope), key = input.get(JsonParts.Account)),
         country = dbutils.widgets.get('country'),
         year = dbutils.widgets.get('year'),
         month = dbutils.widgets.get('month'),
@@ -151,7 +159,8 @@ def writeDf(object:DataFrame,output):
     if type == "prod_csv":
         spark.conf.set("fs.azure.account.key.{account}.blob.core.windows.net".format(account = dbutils.secrets.get(scope = output.get(JsonParts.Scope), key = output.get(JsonParts.Account))),str(dbutils.secrets.get(scope = output.get(JsonParts.Scope), key =output.get(JsonParts.Key))))
         header:bool = output.get(JsonParts.Header)
-        object.coalesce(One).write.mode("overwrite").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path).format( 
+        partitions:List = output.get(JsonParts.Partitions)
+        object.coalesce(One).write.partitionBy(*partitions).mode("overwrite").option("partitionOverwriteMode", "dynamic").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path).format( 
             account = dbutils.secrets.get(scope = output.get(JsonParts.Scope), key = output.get(JsonParts.Account)),
             country = dbutils.widgets.get('country'),
             year = dbutils.widgets.get('year'),
@@ -162,7 +171,7 @@ def writeDf(object:DataFrame,output):
         partitions:List = output.get(JsonParts.Partitions)
         try:
             if len(partitions) > Zero :
-                object.coalesce(One).write.partitionBy(*partitions).mode("overwrite").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path)))
+                object.coalesce(One).write.partitionBy(*partitions).mode("overwrite").option("partitionOverwriteMode", "dynamic").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path)))
             else:
                 object.coalesce(One).write.mode("overwrite").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path)))
         except:
@@ -187,14 +196,14 @@ def createErrorData(object:DataFrame) :
         )
     return spark.createDataFrame(spark.sparkContext.emptyRDD(), schema)
 #Function that validate rules going through the defined options
-def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, project:str,country: str,domain: str,subDomain: str,segment: str,area: str,error):
+def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, project:str,country: str,domain: str,subDomain: str,segment: str,area: str,error,dataDate:str):
     runTime = datetime.datetime.now()
     errorData = createErrorData(object)
     rulesData:List = []
     for code in rules:
         if rules[code].get(JsonParts.Fields) not in [0,["0"],"0"] :
             if code[0:3] == Rules.Pre_Requisites.code:
-                print("Inicializando regla de existencia")
+                print("Inicializando regla de requisitos")
                 columns = rules[code].get(JsonParts.Fields)
                 t = time.time()
                 validateRequisites(object,columns)
@@ -463,19 +472,24 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
                             errorData = errorData.union(errorTotal)
                     rulesData.append(data)
                     print("regla de operacion numerica: %s segundos" % (time.time() - t))
+
             elif code[0:3] == Rules.StatisticsResult.code:
+                print("Inicializando analisis exploratorio")
                 column = rules[code].get(JsonParts.Fields)
                 if column[0] == "*" :
-                    res = measuresCentralTendency(object, object.columns,spark)
+                    res = measuresCentralTendency(object, object.columns, spark)
+                    writeDf(res,rules[code].get(JsonParts.Output))
                 else:
                     res = measuresCentralTendency(object, column,spark)
-                writeDf(res,rules[code].get(JsonParts.Output))
+                    writeDf(res,rules[code].get(JsonParts.Output))
         else:
             pass
     if errorData.count() > Zero:
         writeDf(errorData,error)
     validationData:DataFrame = spark.createDataFrame(data = rulesData, schema = OutputDataFrameColumns)
     return validationData.select(
+        DataDate.value(when(lit(dataDate).isNull(),dbutils.widgets.get('year')+ "-"  + dbutils.widgets.get('month') + "-" + dbutils.widgets.get('day')).otherwise(dataDate)),
+        CountryId.value(when(lit(country).isNull(),dbutils.widgets.get('country')).otherwise(country)),
         Country.value(when(lit(country).isNull(),dbutils.widgets.get('country')).otherwise(country)),
         Project.value(lit(project)),
         Entity.value(lit(entity)),

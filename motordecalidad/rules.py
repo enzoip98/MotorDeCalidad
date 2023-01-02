@@ -3,7 +3,7 @@ from pyspark.sql import DataFrame
 from pyspark.sql.functions import to_date,regexp_replace,concat_ws,length,split, lit, collect_list
 from motordecalidad.constants import *
 import operator
-from pyspark.sql.types import StructField, StructType
+from pyspark.sql.types import StructType,StructField
 
 def validateRequisites(object:DataFrame, field:list):
     error_list = list(set(field) - set(object.columns))
@@ -409,20 +409,50 @@ def chooseOper(col,op:str):
     if op=='<':
         return operator.ge
 
-def measuresCentralTendency(object:DataFrame, column, spark):
+def convert_field_to_struct(object, list_campos: list):
+    list_struct_fields = []
+
+    for campo in list_campos:
+        type = object.schema[campo].dataType
+        list_struct_fields.append(StructField(campo, type))
+
+    return StructType(list_struct_fields)
+
+def measuresCentralTendency(object:DataFrame, columns, spark):
     pivotCol='summary'
-    modes=["Mode"]
-    columnSchema = [pivotCol,column]
-    modes.append(str(object.groupby(column).count().orderBy("count", ascending=False).first()[0]))
-    res=object.select(column).summary('mean','25%','50%','75%')
-    modeData = [(modes[0],modes[1])]
+    modes=("Mode",)
+    columnSchema = [pivotCol]+columns
+    
+    for i in columns:
+        if str(object.schema[i].dataType) == 'BooleanType()':
+            object = object.withColumn(i, object[i].cast('string'))
+        
+        modes=modes+(str(object.groupby(i).count().orderBy("count", ascending=False).first()[0]),)
+        
+    res=object.select(columns).summary('stddev','mean','min','1%','5%','10%','25%','50%','75%','90%','95%','max')
+    modeData = [modes]
     modeDf = spark.createDataFrame(data = modeData,schema = columnSchema)
+
     res = res.union(modeDf)
-    stackCols = "'"+str(column)+"'"+","+column
-    df_1 = res.selectExpr(pivotCol, "stack(1" + "," + stackCols + ")")
+    columnsValue = list(map(lambda x: str("'") + str(x) + str("',")  + str(x), columns))
+    stackCols = ','.join(x for x in columnsValue)
+    df_1 = res.selectExpr(pivotCol, "stack(" + str(len(columns)) + "," + stackCols + ")")\
+            .select(pivotCol, "col0", "col1")
     final_df = df_1.groupBy(col("col0")).pivot(pivotCol).agg(concat_ws("", collect_list(col("col1"))))\
-                   .withColumnRenamed("col0", pivotCol)
-    final_df=final_df.withColumnRenamed('25%','per_25')\
-    .withColumnRenamed('50%','median')\
-    .withColumnRenamed('75%','per_75')
+                    .withColumnRenamed("col0", pivotCol)
+    
+    final_df=final_df.withColumnRenamed('summary', 'CAMPOS')\
+                        .withColumnRenamed('1%','P1')\
+                        .withColumnRenamed('5%','P5')\
+                        .withColumnRenamed('25%','P25')\
+                        .withColumnRenamed('50%','MEDIANA')\
+                        .withColumnRenamed('75%','P75')\
+                        .withColumnRenamed('90%','P90')\
+                        .withColumnRenamed('95%','P95')\
+                        .withColumnRenamed('Mode', 'MODA')\
+                        .withColumnRenamed('mean', 'MEDIA')\
+                        .withColumnRenamed('stddev','DESVIACION ESTANDAR')\
+                        .withColumnRenamed('min','MIN')\
+                        .withColumnRenamed('max','MAX')
+    
     return final_df
