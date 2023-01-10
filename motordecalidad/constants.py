@@ -104,13 +104,6 @@ class JsonParts:
     Partitions = "PARTITIONS"
     DataDate = "DATA_DATE"
 
-
-LeftAntiType = "leftanti"
-One = 1
-Zero = 0
-OneHundred = 100
-
-
 class Field:
     def __init__(self,colName):
         self.name = colName
@@ -143,6 +136,9 @@ RuleProperty = Field("PROPIEDAD_REGLA")
 FailRate = Field("PORCENTAJE_CALIDAD_KO")
 FunctionCode = Field("CODIGO_FUNCION")
 
-
+LeftAntiType = "leftanti"
+One = 1
+Zero = 0
+OneHundred = 100
 OutputDataFrameColumns = [TestedRegisterAmount.name,FunctionCode.name,RuleGroup.name,RuleProperty.name,RuleCode.name,Threshold.name,DataRequirement.name,TestedFields.name,SucessRate.name,FailedRegistersAmount.name]
 PermitedFormatDate = ['yyyy-MM-dd','yyyy/MM/dd', 'yyyyMMdd', 'yyyyMM']

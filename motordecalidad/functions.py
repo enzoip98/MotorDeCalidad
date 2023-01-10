@@ -1,15 +1,15 @@
 import json
 from typing import List
-from pyspark.sql import DataFrame
 from pyspark.sql.functions import *
-from pyspark.sql.types import StructType,StructField, StringType
+from pyspark.sql.types import StructType,StructField,StringType,BooleanType,DoubleType,LongType,DecimalType, IntegerType, DateType, ShortType
 from motordecalidad.constants import *
+from motordecalidad.utilities import *
 import datetime
 import time
 from motordecalidad.rules import *
 
 
-print("Motor de Calidad Version Release 1.4")
+print("Motor de Calidad Version Release 1.5")
 
 # Main function, Invokes all the parameters from the json, Optionally filters, starts the rule validation
 # Writes and returns the summary of the validation 
@@ -28,18 +28,7 @@ def startValidation(inputspark,config,dfltPath=""):
     writeDf(validationData, output)
     return validationData
 
-#Function to define the dbutils library from Azure Databricks
-def get_dbutils(spark):
-        try:
-            from pyspark.dbutils import DBUtils
-            dbutils = DBUtils(spark)
-        except ImportError:
-            import IPython
-            dbutils = IPython.get_ipython().user_ns["dbutils"]
-        return dbutils
-
 # Function that extracts the information from de JSON File
-# @config Variable that contains the JSON route
 def extractParamsFromJson(config):
     file = open(config)
     data = json.load(file)
@@ -74,15 +63,8 @@ def readDf(input):
         month = dbutils.widgets.get('month'),
         day = dbutils.widgets.get('day')))
     elif type == "prod_parquet":
-        spark.conf.set("fs.azure.account.key.{account}.dfs.core.windows.net".format( account = dbutils.secrets.get(scope=input.get(JsonParts.Scope),key = input.get(JsonParts.Account))),dbutils.secrets.get(scope = input.get(JsonParts.Scope), key = input.get(JsonParts.Key)))
-        return spark.read.parquet(str(input.get(JsonParts.Path)).format(account = dbutils.secrets.get(scope = input.get(JsonParts.Scope), key = input.get(JsonParts.Account)),
-        country = dbutils.widgets.get('country'),
-        year = dbutils.widgets.get('year'),
-        month = dbutils.widgets.get('month'),
-        day = dbutils.widgets.get('day')))
-    elif type == "prod_parquet":
-        spark.conf.set("fs.azure.account.key.{account}.dfs.core.windows.net".format( account = dbutils.secrets.get(scope=input.get(JsonParts.Scope),key = input.get(JsonParts.Account))),dbutils.secrets.get(scope = input.get(JsonParts.Scope), key = input.get(JsonParts.Key)))
-        return spark.read.parquet(str(input.get(JsonParts.Path)).format(account = dbutils.secrets.get(scope = input.get(JsonParts.Scope), key = input.get(JsonParts.Account)),
+        spark.conf.set(input.get(JsonParts.Account),input.get(JsonParts.Key))
+        return spark.read.parquet(str(input.get(JsonParts.Path)).format(
         country = dbutils.widgets.get('country'),
         year = dbutils.widgets.get('year'),
         month = dbutils.widgets.get('month'),
@@ -157,14 +139,25 @@ def readDf(input):
 def writeDf(object:DataFrame,output):
     type = output.get(JsonParts.Type)
     if type == "prod_csv":
-        spark.conf.set("fs.azure.account.key.{account}.blob.core.windows.net".format(account = dbutils.secrets.get(scope = output.get(JsonParts.Scope), key = output.get(JsonParts.Account))),str(dbutils.secrets.get(scope = output.get(JsonParts.Scope), key =output.get(JsonParts.Key))))
+        spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
         header:bool = output.get(JsonParts.Header)
         partitions:List = output.get(JsonParts.Partitions)
-        object.coalesce(One).write.partitionBy(*partitions).mode("overwrite").option("partitionOverwriteMode", "dynamic").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path).format( 
-            account = dbutils.secrets.get(scope = output.get(JsonParts.Scope), key = output.get(JsonParts.Account)),
-            country = dbutils.widgets.get('country'),
-            year = dbutils.widgets.get('year'),
-            month = dbutils.widgets.get('month'))))
+        try:
+            if len(partitions) > Zero :
+                object.coalesce(One).write.partitionBy(*partitions).mode("overwrite").option("partitionOverwriteMode", "dynamic").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path).format( 
+                    country = dbutils.widgets.get('country'),
+                    year = dbutils.widgets.get('year'),
+                    month = dbutils.widgets.get('month'))))
+            else:
+                object.coalesce(One).write.mode("overwrite").option("partitionOverwriteMode", "dynamic").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path).format( 
+                    country = dbutils.widgets.get('country'),
+                    year = dbutils.widgets.get('year'),
+                    month = dbutils.widgets.get('month'))))
+        except:
+            object.coalesce(One).write.mode("overwrite").option("partitionOverwriteMode", "dynamic").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path).format( 
+                country = dbutils.widgets.get('country'),
+                year = dbutils.widgets.get('year'),
+                month = dbutils.widgets.get('month'))))
     else:
         spark.conf.set(output.get(JsonParts.Account),output.get(JsonParts.Key))
         header:bool = output.get(JsonParts.Header)
@@ -178,21 +171,32 @@ def writeDf(object:DataFrame,output):
             object.coalesce(One).write.mode("overwrite").option("delimiter",str(output.get(JsonParts.Delimiter))).option("header",header).format("com.databricks.spark.csv").save(str(output.get(JsonParts.Path)))
     print("Se escribio en el blob")
 
-def applyFilter(object:DataFrame, filtered) :
-    try:
-        filteredColumn = filtered.get(JsonParts.Fields)
-        filterValue = filtered.get(JsonParts.Values)
-        print("Extracción de parametros de filtrado finalizada")
-        return object.filter(col(filteredColumn)==filterValue)
-    except:
-        print("Se omite filtro")
-        return object
-
 def createErrorData(object:DataFrame) :
     columnsList = object.columns
+    columnsTypes: List = []
+    for dt in object.dtypes:
+        if dt[One] == 'string':
+            columnsTypes.append(StringType())
+        elif dt[One] == 'boolean':
+            columnsTypes.append(BooleanType())
+        elif dt[One] == 'double':
+            columnsTypes.append(DoubleType())
+        elif dt[One] == 'bigint':
+            columnsTypes.append(LongType())
+        elif dt[One] == 'decimal(31,1)':
+            columnsTypes.append(DecimalType(31,1))
+        elif dt[One] == 'decimal(17,2)':
+            columnsTypes.append(DecimalType(17,2))
+        elif dt[One] == 'int' :
+            columnsTypes.append(IntegerType())
+        elif dt[One] == 'date':
+            columnsTypes.append(DateType())
+        elif dt[One] == 'smallint' :
+            columnsTypes.append(ShortType())
+    columnsTypes.extend([StringType(),StringType()])
     columnsList.extend(["error","run_time"])
     schema = StructType(
-        list(map(lambda x: StructField(x,StringType()),columnsList))
+        list(map(lambda x,y: StructField(x,y),columnsList,columnsTypes))
         )
     return spark.createDataFrame(spark.sparkContext.emptyRDD(), schema)
 #Function that validate rules going through the defined options
@@ -208,7 +212,7 @@ def validateRules(object:DataFrame,rules:dict,registerAmount:int, entity: str, p
                 t = time.time()
                 validateRequisites(object,columns)
                 print("regla de requisitos: %s segundos" % (time.time() - t))
-            if code[0:3] == Rules.NullRule.code:
+            elif code[0:3] == Rules.NullRule.code:
                 print("Inicializando reglas de Nulos")
                 data:List = []
                 columns = rules[code].get(JsonParts.Fields)
